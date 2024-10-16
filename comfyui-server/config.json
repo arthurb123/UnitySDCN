@@ -1,0 +1,11 @@
+{
+    "address": "localhost:8188",
+    "checkpointModelName": "Juggernaut_X_RunDiffusion_Hyper.safetensors",
+    "controlNetDepthModelName": "controlnet-depth.safetensors",
+    "useControlNet": true,
+    "steps": 4,
+    "cfg": 0.8,
+    "sampler": "dpmpp_sde",
+    "scheduler": "karras",
+    "denoise": 1
+}

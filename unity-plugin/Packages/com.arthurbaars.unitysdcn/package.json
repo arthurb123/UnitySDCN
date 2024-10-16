@@ -1,0 +1,16 @@
+{
+  "name": "com.arthurbaars.unitysdcn",
+  "version": "1.0.0",
+  "displayName": "UnitySDCN",
+  "description": "Frontend of the UnitySDCN pipeline, designed for usage with the URP pipeline.",
+  "unity": "2022.3",
+  "author": {
+    "name": "Arthur Baars",
+    "email": "arthurbaars@outlook.com",
+    "url": "https://www.github.com/arthurb123"
+  },
+  "dependencies": {
+    "com.unity.render-pipelines.core": "14.0.1",
+    "com.unity.render-pipelines.universal": "14.0.1"
+  }
+}
