@@ -260,19 +260,26 @@ namespace UnitySDCN
             }
         }
 
-        private Vector2Int GetCaptureResolution() {
-            // Check if camera is null
-            if (_camera == null) {
+        private Vector2Int GetCaptureResolution()
+        {
+            if (_camera == null)
+            {
                 SDCNLogger.Error(
                     typeof(SDCNCamera),
                     "Could not get capture resolution, no camera found in SDCNCamera!"
                 );
                 return Vector2Int.zero;
             }
-            return new Vector2Int(
-                Mathf.ClosestPowerOfTwo(Mathf.RoundToInt(_camera.pixelWidth * captureScale)),
-                Mathf.ClosestPowerOfTwo(Mathf.RoundToInt(_camera.pixelHeight * captureScale))
-            );
+
+            int originalWidth = Mathf.RoundToInt(_camera.pixelWidth * captureScale);
+            int originalHeight = Mathf.RoundToInt(_camera.pixelHeight * captureScale);
+
+            // Adjust width to the closest power of two
+            int width = Mathf.ClosestPowerOfTwo(originalWidth);
+            // Calculate height based on the original aspect ratio
+            int height = Mathf.RoundToInt(width * ((float)originalHeight / originalWidth));
+
+            return new Vector2Int(width, height);
         }
     }
 }

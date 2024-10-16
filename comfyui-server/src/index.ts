@@ -77,7 +77,8 @@ const comfyUIClientId = 'b3b7d4b6-3b9a-4c6e-9d2b-0b4d6b6f5b9c';
 const comfyUIClient = new ComfyUIClient(comfyUIConfiguration.address, comfyUIClientId);
 
 // Reset temp folder
-fs.rmSync('temp', { recursive: true });
+if (fs.existsSync('temp'))
+    fs.rmSync('temp', { recursive: true });
 fs.mkdirSync('temp');
 
 app.use(bodyParser.json({

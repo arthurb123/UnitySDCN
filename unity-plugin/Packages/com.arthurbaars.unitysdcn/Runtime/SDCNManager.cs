@@ -76,10 +76,10 @@ namespace UnitySDCN {
             // System.IO.File.WriteAllBytes("Assets/depth_image.png", depthImage);
 
             // DEBUG: Save segmented image to png file
-            for (int i = 0; i < segments.Length; i++) {
-                string path = "Assets/segmented_image_" + i + ".png";
-                System.IO.File.WriteAllBytes(path, segments[i].MaskImage);
-            }
+            // for (int i = 0; i < segments.Length; i++) {
+            //     string path = "Assets/segmented_image_" + i + ".png";
+            //     System.IO.File.WriteAllBytes(path, segments[i].MaskImage);
+            // }
 
             // Generate image from segments
             Texture2D? texture = await SDCNWebClient.GenerateImage(
