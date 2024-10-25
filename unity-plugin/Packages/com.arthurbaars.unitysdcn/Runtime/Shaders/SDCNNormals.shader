@@ -1,15 +1,16 @@
-Shader "SDCN/Normal"
+Shader "SDCN/Normals"
 {
+    Properties
+    {
+    }
     SubShader
     {
-        Tags { "RenderType"="Opaque" }
+        Tags { "RenderType"="Opaque" "RenderPipeline"="UniversalRenderPipeline" }
         Pass
         {
-            ZWrite Off
-            Cull Off
             HLSLPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
+            #pragma vertex Vert
+            #pragma fragment Frag
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
             struct Attributes
@@ -24,7 +25,7 @@ Shader "SDCN/Normal"
                 float3 normalWS : TEXCOORD0;
             };
 
-            Varyings vert(Attributes input)
+            Varyings Vert(Attributes input)
             {
                 Varyings output;
                 output.positionHCS = TransformObjectToHClip(input.positionOS);
@@ -32,9 +33,10 @@ Shader "SDCN/Normal"
                 return output;
             }
 
-            float4 frag(Varyings input) : SV_Target
+            float4 Frag(Varyings input) : SV_Target
             {
-                float3 normal = normalize(input.normalWS) * 0.5 + 0.5;
+                float3 normal = normalize(input.normalWS);
+                normal = normal * 0.5 + 0.5; // Shift from [-1,1] to [0,1]
                 return float4(normal, 1.0);
             }
             ENDHLSL

@@ -53,22 +53,36 @@ if (options.help) {
 const port = options.port as number;
 const comfyUIConfiguration = JSON.parse(fs.readFileSync(options.configuration, 'utf8')) as ComfyUIConfiguration;
 
-// Sanity check
-if (comfyUIConfiguration.address.indexOf('http') !== -1) {
-    console.error('Please provide the ComfyUI address without the protocol (http/https) as it uses WebSockets.');
-    process.exit(1);
-}
-
 // Pretty print the configuration
 console.log(`Using ComfyUI configuration '${options.configuration}':`);
 console.log(`> Model:      ${comfyUIConfiguration.checkpointModelName}`);
-if (comfyUIConfiguration.useControlNet)
-console.log(`> CN Model:   ${comfyUIConfiguration.controlNetDepthModelName}`);
 console.log(`> ControlNet: ${comfyUIConfiguration.useControlNet}`);
+if (comfyUIConfiguration.useControlNet) {
+    console.log(`> CN Depth:   ${comfyUIConfiguration.controlNetDepthModelName}`);
+    console.log(`> CN Normals: ${comfyUIConfiguration.controlNetNormalModelName}`);
+}
 console.log(`> Steps:      ${comfyUIConfiguration.steps}`);
 console.log(`> CFG:        ${comfyUIConfiguration.cfg}`);
 console.log(`> Sampler:    ${comfyUIConfiguration.sampler}`);
 console.log(`> Scheduler:  ${comfyUIConfiguration.scheduler}`);
+
+// Sanity checks
+if (comfyUIConfiguration.address.indexOf('http') !== -1) {
+    console.error('Please provide the ComfyUI address without the protocol (http/https) as it uses WebSockets.');
+    process.exit(1);
+}
+if (comfyUIConfiguration.useControlNet) {
+    if (comfyUIConfiguration.controlNetDepthModelName === undefined 
+    ||  comfyUIConfiguration.controlNetDepthModelName === '') {
+        console.error('Please provide a ControlNet depth model name if ControlNet is enabled.');
+        process.exit(1);
+    }
+    if (comfyUIConfiguration.controlNetNormalModelName === undefined
+    ||  comfyUIConfiguration.controlNetNormalModelName === '') {
+        console.error('Please provide a ControlNet normal model name if ControlNet is enabled.');
+        process.exit(1);
+    }
+}
 
 // Setup server and ComfyUI client
 const app = express();
@@ -160,7 +174,10 @@ app.post('/generate', async (req, res) => {
         if (foundImage)
             console.log(`Image saved to ${imageLocation}!`);
         else {
-            console.error(`Failed to find image with name ${imageName}, check ComfyUI logs for more information.`);
+            console.error(
+                `Failed to find image with name ${imageName}, something ` + 
+                `probably went wrong in ComfyUI - check the ComfyUI logs for more information.`
+            );
             res.sendStatus(500);
             return;
         }

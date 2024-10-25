@@ -55,6 +55,13 @@ namespace UnitySDCN
                 _mode = SDCNCameraMode.Segmented;
             }
 
+            // Log modes
+            SDCNLogger.Log(
+                typeof(SDCNCamera), 
+                $"Capturing images with modes: {_mode}.", 
+                SDCNVerbosity.Verbose
+            );
+
             // Capture segments by default
             SDCNSegment[]? segments = CaptureSegmentedImage(captureResolution);
             if (segments == null)
@@ -105,7 +112,17 @@ namespace UnitySDCN
 
             RenderTexture depthRT = new(captureResolution.x, captureResolution.y, 24, RenderTextureFormat.Depth);
             RenderTexture colorRT = new(captureResolution.x, captureResolution.y, 0, RenderTextureFormat.ARGB32);
-            Material depthMaterial = new(Shader.Find("SDCN/Depth"));
+
+            Shader depthShader = Shader.Find("SDCN/Depth");
+            if ( depthShader == null)
+            {
+                SDCNLogger.Error(
+                    typeof(SDCNManager),
+                    "Shader 'SDCN/Depth' not found!"
+                );
+                return null;
+            }
+            Material depthMaterial = new(depthShader);
 
             RenderTexture originalRT = _camera.targetTexture;
             CameraClearFlags originalClearFlags = _camera.clearFlags;
@@ -161,86 +178,186 @@ namespace UnitySDCN
             * @return A byte array containing the normal image in PNG format
             */
         public byte[]? CaptureNormalImage(Vector2Int captureResolution)
-{
-    if (_camera == null)
-    {
-        SDCNLogger.Error(
-            typeof(SDCNCamera),
-            "Could not capture normal image, no camera found in SDCNCamera!"
-        );
-        return null;
-    }
+        {
+            if (_camera == null)
+            {
+                SDCNLogger.Error(
+                    typeof(SDCNCamera),
+                    "Could not capture normal image, no camera found in SDCNCamera!"
+                );
+                return null;
+            }
 
-    SDCNLogger.Log(
-        typeof(SDCNManager),
-        $"Capturing normal image from camera {_camera.name}.",
-        SDCNVerbosity.Verbose
-    );
-
-    float originalAspect = _camera.aspect;
-    _camera.aspect = (float)captureResolution.x / captureResolution.y;
-
-    // Create a RenderTexture for capturing the normal image
-    RenderTexture normalRT = new(captureResolution.x, captureResolution.y, 0, RenderTextureFormat.ARGB32);
-
-    // Store original camera settings
-    RenderTexture originalRT = _camera.targetTexture;
-    CameraClearFlags originalClearFlags = _camera.clearFlags;
-
-    try
-    {
-        // Load the normal shader
-        Shader normalShader = Shader.Find("SDCN/Normal");
-        if (normalShader == null) {
-            SDCNLogger.Error(
-                typeof(SDCNManager), 
-                "Shader 'SDCN/Normal' not found!", 
-                SDCNVerbosity.Minimal
+            SDCNLogger.Log(
+                typeof(SDCNManager),
+                $"Capturing normal image from camera {_camera.name}.",
+                SDCNVerbosity.Verbose
             );
-            return null;
+
+            float originalAspect = _camera.aspect;
+            _camera.aspect = (float)captureResolution.x / captureResolution.y;
+
+            // Store global volume weights and disable them
+            Volume[] globalVolumes = FindObjectsByType<Volume>(FindObjectsSortMode.None);
+            float[] originalGlobalVolumeWeights = new float[globalVolumes.Length];
+            for (int i = 0; i < globalVolumes.Length; i++)
+            {
+                originalGlobalVolumeWeights[i] = globalVolumes[i].weight;
+                globalVolumes[i].weight = 0.0f;
+            }
+
+            Renderer[] renderers = new Renderer[0];
+            Dictionary<Renderer, (bool, ShadowCastingMode)> originalShading = new();
+            Dictionary<Renderer, Material[]> originalMaterials = new();
+
+            Material? originalSkybox = RenderSettings.skybox;
+            Color originalBackgroundColor = _camera.backgroundColor;
+            CameraClearFlags originalClearFlags = _camera.clearFlags;
+            AmbientMode originalAmbientMode = RenderSettings.ambientMode;
+            Color originalAmbientLight = RenderSettings.ambientLight;
+            RenderTexture? originalTargetTexture = _camera.targetTexture;
+
+            RenderTexture? normalRT = null;
+            Material? skyboxMaterial = null;
+            Material? normalMaterial = null;
+
+            try
+            {
+                // Find all renderers in the scene
+                renderers = FindObjectsByType<Renderer>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+                SDCNLogger.Log(
+                    typeof(SDCNManager),
+                    $"Found {renderers.Length} renderers in the scene.",
+                    SDCNVerbosity.Verbose
+                );
+
+                // Store original shading and materials
+                foreach (Renderer renderer in renderers)
+                {
+                    originalShading[renderer] = (renderer.receiveShadows, renderer.shadowCastingMode);
+                    renderer.receiveShadows = false;
+                    renderer.shadowCastingMode = ShadowCastingMode.Off;
+                    originalMaterials[renderer] = renderer.sharedMaterials;
+                }
+
+                // Load the normal shader
+                Shader normalShader = Shader.Find("SDCN/Normals");
+                if (normalShader == null)
+                {
+                    SDCNLogger.Error(
+                        typeof(SDCNManager),
+                        "Shader 'SDCN/Normals' not found!"
+                    );
+                    return null;
+                }
+
+                // Create the normal material
+                normalMaterial = new Material(normalShader);
+
+                // Set up a black skybox
+                skyboxMaterial = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
+                skyboxMaterial.color = Color.black;
+                RenderSettings.skybox = skyboxMaterial;
+
+                _camera.clearFlags = CameraClearFlags.Skybox;
+                RenderSettings.ambientMode = AmbientMode.Flat;
+                RenderSettings.ambientLight = Color.black;
+
+                // Create a RenderTexture for capturing the normal image
+                normalRT = new RenderTexture(captureResolution.x, captureResolution.y, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
+                normalRT.Create();
+
+                // Assign the normal material to all renderers
+                foreach (Renderer renderer in renderers)
+                {
+                    Material[] normalMaterials = new Material[renderer.sharedMaterials.Length];
+                    for (int i = 0; i < normalMaterials.Length; i++)
+                    {
+                        normalMaterials[i] = normalMaterial;
+                    }
+                    renderer.sharedMaterials = normalMaterials;
+                }
+
+                // Set up camera for normal rendering
+                _camera.targetTexture = normalRT;
+
+                // Render the camera
+                _camera.Render();
+
+                // Read pixels from the normal texture
+                Texture2D normalTexture = new Texture2D(captureResolution.x, captureResolution.y, TextureFormat.ARGB32, false);
+                RenderTexture.active = normalRT;
+                normalTexture.ReadPixels(new Rect(0, 0, captureResolution.x, captureResolution.y), 0, 0);
+                normalTexture.Apply();
+                RenderTexture.active = null;
+
+                // Encode the captured texture to PNG
+                byte[] bytes = normalTexture.EncodeToPNG();
+
+                // Clean up the temporary texture
+                DestroyImmediate(normalTexture);
+
+                SDCNLogger.Log(
+                    typeof(SDCNManager),
+                    "Normal image captured successfully.",
+                    SDCNVerbosity.Minimal
+                );
+
+                return bytes;
+            }
+            finally
+            {
+                // Restore original materials and shading
+                foreach (var kvp in originalMaterials)
+                {
+                    if (kvp.Key != null)
+                    {
+                        kvp.Key.sharedMaterials = kvp.Value;
+                    }
+                }
+                foreach (Renderer renderer in renderers)
+                {
+                    if (originalShading.TryGetValue(renderer, out var shading))
+                    {
+                        renderer.receiveShadows = shading.Item1;
+                        renderer.shadowCastingMode = shading.Item2;
+                    }
+                }
+
+                // Restore original camera and render settings
+                _camera.clearFlags = originalClearFlags;
+                _camera.backgroundColor = originalBackgroundColor;
+                _camera.targetTexture = originalTargetTexture;
+                _camera.aspect = originalAspect;
+                RenderSettings.skybox = originalSkybox;
+                RenderSettings.ambientMode = originalAmbientMode;
+                RenderSettings.ambientLight = originalAmbientLight;
+
+                // Restore the volume weights
+                for (int i = 0; i < globalVolumes.Length; i++)
+                {
+                    globalVolumes[i].weight = originalGlobalVolumeWeights[i];
+                }
+
+                // Clean up
+                if (normalRT != null)
+                {
+                    normalRT.Release();
+                    DestroyImmediate(normalRT);
+                }
+                if (skyboxMaterial != null) DestroyImmediate(skyboxMaterial);
+                if (normalMaterial != null) DestroyImmediate(normalMaterial);
+
+                // Ensure RenderTexture.active is set to null
+                RenderTexture.active = null;
+
+                SDCNLogger.Log(
+                    typeof(SDCNManager),
+                    "Restored original settings after capturing normal image.",
+                    SDCNVerbosity.Verbose
+                );
+            }
         }
-
-        // Set up camera for normal rendering
-        _camera.targetTexture = normalRT;
-        _camera.clearFlags = CameraClearFlags.SolidColor;
-        _camera.backgroundColor = Color.black;
-        _camera.SetReplacementShader(normalShader, "");
-
-        // Render the camera
-        _camera.Render();
-
-        // Create a Texture2D to read from the normal texture
-        Texture2D normalTexture = new(captureResolution.x, captureResolution.y, TextureFormat.RGBA32, false);
-
-        // Read pixels from the normal texture
-        RenderTexture.active = normalRT;
-        normalTexture.ReadPixels(new Rect(0, 0, captureResolution.x, captureResolution.y), 0, 0);
-        normalTexture.Apply();
-
-        // Encode the captured texture to PNG
-        byte[] bytes = normalTexture.EncodeToPNG();
-
-        SDCNLogger.Log(
-            typeof(SDCNManager),
-            "Normal image captured successfully.",
-            SDCNVerbosity.Minimal
-        );
-
-        return bytes;
-    }
-    finally
-    {
-        // Restore camera settings
-        _camera.aspect = originalAspect;
-        _camera.targetTexture = originalRT;
-        _camera.clearFlags = originalClearFlags;
-        _camera.ResetReplacementShader();
-
-        RenderTexture.active = null;
-        if (normalRT != null)
-            normalRT.Release();
-    }
-}
 
         /**
           * Capture a segmentation image from the camera
