@@ -1,5 +1,4 @@
 import { Prompt } from "comfy-ui-client";
-import { PNG } from "pngjs";
 import fs from 'fs';
 import { Segment, ComfyUIConfiguration } from "./types";
 import Utils from "./utils";
@@ -7,41 +6,47 @@ import Utils from "./utils";
 export default class ComfyUI {
     static async createWorkflow (
         generationId: number,
-        depthImageBase64: string,
+        width: number, height: number,
         segments: Segment[],
+        depthImageBase64: string | undefined,
+        normalImageBase64: string | undefined,
         negativePrompt: string,
         backgroundPrompt: string,
         comfyUIConfiguration: ComfyUIConfiguration
     ) : Promise<Prompt> {
-        // Decode the base64 image into a buffer
-        const depthImageBuffer = Buffer.from(depthImageBase64, 'base64');
-    
-        // Parse the PNG image using pngjs
-        const png = PNG.sync.read(depthImageBuffer);
-    
-        // Get image dimensions and pixel data
-        const { width, height, data } = png;
+        // Attempt to decode the optional base64
+        // images to buffers
+        const depthImageBuffer = 
+            depthImageBase64 != null 
+                ? Buffer.from(depthImageBase64, 'base64') 
+                : null;
+        const normalImageBuffer =
+            normalImageBase64 != null
+                ? Buffer.from(normalImageBase64, 'base64')
+                : null;
     
         // Set generation settings
         const generationSettings = {
             imageWidth: width,
             imageHeight: height,
+            // TODO: Make seed customizable on the frontend
             seed: Math.floor(Math.random() * 1000000000),
-            // Don't forget the user-defined ComfyUI configuration
+            // Don't forget the user-defined ComfyUI configuration!
             ...comfyUIConfiguration
         };
     
         // Setup base workflow
-        const MODEL_ID = 1;
-        const CONTROLNET_MODEL_ID = 2;
-        const DEPTH_IMAGE_ID = 3;
-        const NEGATIVE_CONDITIONING_ID = 4;
-        const REGION_ATTENTION_MASK_ID = 5;
-        const KSAMPLER_ID = 6;
-        const LATENT_IMAGE_ID = 7;
-        const VAE_DECODE_ID = 8;
-        const SAVE_IMAGE_ID = 9;
-        let nodeCounter = 10;
+        let nodeCounter = 0;
+        const MODEL_ID                 = nodeCounter++;
+        const CONTROLNET_MODEL_ID      = nodeCounter++;
+        const DEPTH_IMAGE_ID           = nodeCounter++;
+        const NORMAL_IMAGE_ID          = nodeCounter++;
+        const NEGATIVE_CONDITIONING_ID = nodeCounter++;
+        const REGION_ATTENTION_MASK_ID = nodeCounter++;
+        const KSAMPLER_ID              = nodeCounter++;
+        const LATENT_IMAGE_ID          = nodeCounter++;
+        const VAE_DECODE_ID            = nodeCounter++;
+        const SAVE_IMAGE_ID            = nodeCounter++;
     
         // Create background region partial workflow
         const {
@@ -115,25 +120,26 @@ export default class ComfyUI {
                     "title": "Load Checkpoint"
                 }
             },
-            ${comfyUIConfiguration.useControlNet ? `
-            "${CONTROLNET_MODEL_ID}": {
-                "inputs": {
-                    "control_net_name": "${generationSettings.controlNetDepthModelName}"
+            ${comfyUIConfiguration.useControlNet 
+            ? `"${CONTROLNET_MODEL_ID}": {
+                    "inputs": {
+                        "control_net_name": "${generationSettings.controlNetDepthModelName}"
+                    },
+                    "class_type": "ControlNetLoader",
+                        "_meta": {
+                        "title": "Load ControlNet Model"
+                    }
                 },
-                "class_type": "ControlNetLoader",
+                "${DEPTH_IMAGE_ID}": {
+                    "inputs": {
+                        "image": "${depthImageBase64}"
+                    },
+                    "class_type": "ETN_LoadImageBase64",
                     "_meta": {
-                    "title": "Load ControlNet Model"
-                }
-            },
-            "${DEPTH_IMAGE_ID}": {
-                "inputs": {
-                    "image": "${depthImageBase64}"
-                },
-                "class_type": "ETN_LoadImageBase64",
-                "_meta": {
-                    "title": "Load Image (Base64)"
-                }
-            },` : ''}
+                        "title": "Load Image (Base64)"
+                    }
+                },` 
+            : ''}
             "${NEGATIVE_CONDITIONING_ID}": {
                 "inputs": {
                     "text": "${negativePrompt}",

@@ -1,4 +1,4 @@
-Shader "UnitySDCN/Depth"
+Shader "SDCN/Depth"
 {
     Properties
     {

@@ -52,41 +52,41 @@ namespace UnitySDCN {
                 return;
             }
 
-            // Render depth image from camera
-            byte[]? depthImage = _camera.CaptureDepthImage();
-            if (depthImage == null) {
+            // Capture camera data
+            SDCNCameraCapture? cameraCapture = _camera.Capture();
+            if (cameraCapture == null) {
                 SDCNLogger.Error(
                     typeof(SDCNManager), 
-                    "Could not render image, failed to capture depth image"
-                );
-                return;
-            }
-
-            // Capture segmented image from camera
-            SDCNSegment[]? segments = _camera.CaptureSegmentedImage();
-            if (segments == null) {
-                SDCNLogger.Error(
-                    typeof(SDCNManager), 
-                    "Could not render image, failed to capture segmented image"
+                    "Could not render image, failed to capture camera data"
                 );
                 return;
             }
 
             // DEBUG: Save depth image to png file
-            // System.IO.File.WriteAllBytes("Assets/depth_image.png", depthImage);
+            // if (cameraCapture.DepthImage != null)
+            //     System.IO.File.WriteAllBytes("Assets/depth_image.png", cameraCapture.DepthImage);
+
+            // DEBUG: Save normal image to png file
+            if (cameraCapture.NormalImage != null)
+                System.IO.File.WriteAllBytes("Assets/normal_image.png", cameraCapture.NormalImage);
 
             // DEBUG: Save segmented image to png file
-            // for (int i = 0; i < segments.Length; i++) {
+            // for (int i = 0; i < cameraCapture.Segments.Length; i++) {
             //     string path = "Assets/segmented_image_" + i + ".png";
-            //     System.IO.File.WriteAllBytes(path, segments[i].MaskImage);
+            //     System.IO.File.WriteAllBytes(path, cameraCapture.Segments[i].MaskImage);
             // }
 
-            // Generate image from segments
+            // Generate image through web client using
+            // the captured camera data
             Texture2D? texture = await SDCNWebClient.GenerateImage(
-                depthImage,
-                segments,
-                _camera.BackgroundDescription,
-                _camera.NegativeDescription
+                serverAddress: _webServerAddress,
+                width: cameraCapture.Width,
+                height: cameraCapture.Height,
+                segments: cameraCapture.Segments,
+                depthImage: cameraCapture.DepthImage,
+                normalImage: cameraCapture.NormalImage,
+                backgroundDescription: _camera.BackgroundDescription,
+                negativeDescription: _camera.NegativeDescription
             );
 
             // Check if texture is valid

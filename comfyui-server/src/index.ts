@@ -89,8 +89,11 @@ let currentGenerationId = 0;
 app.post('/generate', async (req, res) => {
     try {
         // Extract data
-        const depthImageBase64 = req.body.depthImage as string;
+        const width = req.body.width as number;
+        const height = req.body.height as number;
         const segments = req.body.segments as Segment[];
+        const depthImageBase64 = req.body.depthImage as string | undefined;
+        const normalImageBase64 = req.body.normalImage as string | undefined;
         const backgroundPrompt = req.body.backgroundPrompt as string;
         const negativePrompt = req.body.negativePrompt as string;
 
@@ -118,8 +121,10 @@ app.post('/generate', async (req, res) => {
         let generationId = currentGenerationId++;
         const workflow = await ComfyUI.createWorkflow(
             generationId,
-            depthImageBase64,
+            width, height,
             segments,
+            depthImageBase64,
+            normalImageBase64,
             negativePrompt, 
             backgroundPrompt,
             comfyUIConfiguration
