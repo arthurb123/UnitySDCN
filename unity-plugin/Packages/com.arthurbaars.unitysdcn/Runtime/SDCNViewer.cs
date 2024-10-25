@@ -5,6 +5,8 @@ using UnityEngine;
 namespace UnitySDCN {
     internal class SDCNViewer
     {
+        internal bool IsShowingTexture => _textureCamera != null;
+
         private Camera? _mainCamera;
         private Camera? _textureCamera;
         private Texture2D? _overlayTexture;
@@ -108,6 +110,6 @@ namespace UnitySDCN {
                 Object.Destroy(_overlayTexture);
                 _overlayTexture = null;
             }
-}
+        }
     }
 }

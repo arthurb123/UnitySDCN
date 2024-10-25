@@ -1,5 +1,4 @@
 import { Prompt } from "comfy-ui-client";
-import { PNG } from "pngjs";
 import fs from 'fs';
 import { Segment, ComfyUIConfiguration } from "./types";
 import Utils from "./utils";
@@ -7,61 +6,70 @@ import Utils from "./utils";
 export default class ComfyUI {
     static async createWorkflow (
         generationId: number,
-        depthImageBase64: string,
+        width: number, height: number,
         segments: Segment[],
+        depthImageBase64: string | undefined,
+        normalImageBase64: string | undefined,
         negativePrompt: string,
         backgroundPrompt: string,
         comfyUIConfiguration: ComfyUIConfiguration
     ) : Promise<Prompt> {
-        // Decode the base64 image into a buffer
-        const depthImageBuffer = Buffer.from(depthImageBase64, 'base64');
-    
-        // Parse the PNG image using pngjs
-        const png = PNG.sync.read(depthImageBuffer);
-    
-        // Get image dimensions and pixel data
-        const { width, height, data } = png;
+        // Attempt to decode the optional base64
+        // images to buffers
+        const depthImageBuffer = 
+            depthImageBase64 != null 
+                ? Buffer.from(depthImageBase64, 'base64') 
+                : null;
+        const normalImageBuffer =
+            normalImageBase64 != null
+                ? Buffer.from(normalImageBase64, 'base64')
+                : null;
     
         // Set generation settings
         const generationSettings = {
             imageWidth: width,
             imageHeight: height,
+            // TODO: Make seed customizable on the frontend
             seed: Math.floor(Math.random() * 1000000000),
-            // Don't forget the user-defined ComfyUI configuration
+            // Don't forget the user-defined ComfyUI configuration!
             ...comfyUIConfiguration
         };
     
         // Setup base workflow
-        const MODEL_ID = 1;
-        const CONTROLNET_MODEL_ID = 2;
-        const DEPTH_IMAGE_ID = 3;
-        const NEGATIVE_CONDITIONING_ID = 4;
-        const REGION_ATTENTION_MASK_ID = 5;
-        const KSAMPLER_ID = 6;
-        const LATENT_IMAGE_ID = 7;
-        const VAE_DECODE_ID = 8;
-        const SAVE_IMAGE_ID = 9;
-        let nodeCounter = 10;
+        let nodeCounter = 0;
+        const MODEL_ID                 = nodeCounter++;
+        const NEGATIVE_CONDITIONING_ID = nodeCounter++;
+        const REGION_ATTENTION_MASK_ID = nodeCounter++;
+        const KSAMPLER_ID              = nodeCounter++;
+        const LATENT_IMAGE_ID          = nodeCounter++;
+        const VAE_DECODE_ID            = nodeCounter++;
+        const SAVE_IMAGE_ID            = nodeCounter++;
+
+        // Handle ControlNet usability
+        const useControlNet              = comfyUIConfiguration.useControlNet;
+        const useControlNetNormals       = useControlNet && normalImageBuffer != null;
+        const useControlNetDepth         = useControlNet && depthImageBuffer  != null;
+        const CONTROLNET_DEPTH_MODEL_ID  = useControlNetDepth   ? nodeCounter++ : -1;
+        const CONTROLNET_DEPTH_IMAGE_ID  = useControlNetDepth   ? nodeCounter++ : -1;
+        const CONTROLNET_NORMAL_MODEL_ID = useControlNetNormals ? nodeCounter++ : -1;
+        const CONTROLNET_NORMAL_IMAGE_ID = useControlNetNormals ? nodeCounter++ : -1;
     
         // Create background region partial workflow
         const {
             backgroundRegionPartialWorkflow,
             backgroundRegionConditioningId,
-            backgroundRegionId
-        } = generationSettings.useControlNet
-            ? ComfyUI.createWorkflowBackgroundRegionWithControlNet(
-                nodeCounter, 
-                backgroundPrompt, 
-                MODEL_ID,
-                CONTROLNET_MODEL_ID,
-                DEPTH_IMAGE_ID
-            )
-            : ComfyUI.createWorkflowBackgroundRegion(
-                nodeCounter, 
-                backgroundPrompt, 
-                MODEL_ID
-            );
-        nodeCounter = backgroundRegionId + 1;
+            backgroundRegionId,
+            nodeId
+        } = ComfyUI.createWorkflowBackgroundRegion(
+            nodeCounter, 
+            backgroundPrompt, 
+            MODEL_ID,
+            CONTROLNET_DEPTH_MODEL_ID,
+            CONTROLNET_DEPTH_IMAGE_ID,
+            CONTROLNET_NORMAL_MODEL_ID,
+            CONTROLNET_NORMAL_IMAGE_ID
+        );
+        nodeCounter = nodeId + 1;
     
         // Create multiple partial workflows for each
         // color segment
@@ -71,30 +79,25 @@ export default class ComfyUI {
             // Create a partial workflow for the segment
             const {
                 partialWorkflow,
-                regionId
-            } = generationSettings.useControlNet
-                ? ComfyUI.createWorkflowRegionInputWithControlNet(
-                    nodeCounter,
-                    segment.maskImageBase64,
-                    segment.description,
-                    MODEL_ID,
-                    CONTROLNET_MODEL_ID,
-                    DEPTH_IMAGE_ID,
-                    currentRegionId
-                )
-                : ComfyUI.createWorkflowRegionInput(
-                    nodeCounter,
-                    segment.maskImageBase64,
-                    segment.description,
-                    MODEL_ID,
-                    currentRegionId
-                );
+                regionId,
+                nodeId
+            } = ComfyUI.createWorkflowRegionInput(
+                nodeCounter,
+                segment.maskImageBase64,
+                segment.description,
+                MODEL_ID,
+                CONTROLNET_DEPTH_MODEL_ID,
+                CONTROLNET_DEPTH_IMAGE_ID,
+                CONTROLNET_NORMAL_MODEL_ID,
+                CONTROLNET_NORMAL_IMAGE_ID,
+                currentRegionId
+            );
     
             // Update current region id
             currentRegionId = regionId;
     
-            // Set node id counter
-            nodeCounter = regionId + 1;
+            // Update node counter
+            nodeCounter = nodeId + 1;
     
             // Append to workflow
             regionPartialWorkflows += partialWorkflow;
@@ -115,25 +118,46 @@ export default class ComfyUI {
                     "title": "Load Checkpoint"
                 }
             },
-            ${comfyUIConfiguration.useControlNet ? `
-            "${CONTROLNET_MODEL_ID}": {
-                "inputs": {
-                    "control_net_name": "${generationSettings.controlNetDepthModelName}"
+            ${useControlNetDepth
+            ? `"${CONTROLNET_DEPTH_MODEL_ID}": {
+                    "inputs": {
+                        "control_net_name": "${generationSettings.controlNetDepthModelName}"
+                    },
+                    "class_type": "ControlNetLoader",
+                        "_meta": {
+                        "title": "Load ControlNet Model"
+                    }
                 },
-                "class_type": "ControlNetLoader",
+                "${CONTROLNET_DEPTH_IMAGE_ID}": {
+                    "inputs": {
+                        "image": "${depthImageBase64}"
+                    },
+                    "class_type": "ETN_LoadImageBase64",
                     "_meta": {
-                    "title": "Load ControlNet Model"
-                }
-            },
-            "${DEPTH_IMAGE_ID}": {
-                "inputs": {
-                    "image": "${depthImageBase64}"
+                        "title": "Load Image (Base64)"
+                    }
+                },` 
+            : ''}
+            ${useControlNetNormals
+            ? `"${CONTROLNET_NORMAL_MODEL_ID}": {
+                    "inputs": {
+                        "control_net_name": "${generationSettings.controlNetNormalModelName}"
+                    },
+                    "class_type": "ControlNetLoader",
+                        "_meta": {
+                        "title": "Load ControlNet Model"
+                    }
                 },
-                "class_type": "ETN_LoadImageBase64",
-                "_meta": {
-                    "title": "Load Image (Base64)"
-                }
-            },` : ''}
+                "${CONTROLNET_NORMAL_IMAGE_ID}": {
+                    "inputs": {
+                        "image": "${normalImageBase64}"
+                    },
+                    "class_type": "ETN_LoadImageBase64",
+                    "_meta": {
+                        "title": "Load Image (Base64)"
+                    }
+                },` 
+            : ''}
             "${NEGATIVE_CONDITIONING_ID}": {
                 "inputs": {
                     "text": "${negativePrompt}",
@@ -247,17 +271,33 @@ export default class ComfyUI {
         // Return the workflow
         return JSON.parse(WORKFLOW) as Prompt;
     };
-
+    
     private static createWorkflowRegionInput(
         nodeId: number,
         maskBase64: string, 
         prompt: string, 
         modelId: number,
+        controlNetDepthModelId: number,
+        controlNetDepthImageId: number,
+        controlNetNormalModelId: number,
+        controlNetNormalImageId: number,
         regionId?: number
-    ): { partialWorkflow: string, regionId: number } {
+    ): { partialWorkflow: string, regionId: number, nodeId: number } {
         const loadMaskId = nodeId++;
         const conditioningId = nodeId++;
         const newRegionId = nodeId++;
+        const pipedControlNetDepth = ComfyUI.pipeConditioningThroughControlNet(
+            nodeId++,
+            conditioningId,
+            controlNetDepthImageId,
+            controlNetDepthModelId
+        );
+        const pipedControlNetNormal = ComfyUI.pipeConditioningThroughControlNet(
+            pipedControlNetDepth.nodeId + 1,
+            pipedControlNetDepth.conditioningId,
+            controlNetNormalImageId,
+            controlNetNormalModelId
+        );
         return {
             partialWorkflow: `
                 "${loadMaskId}": {
@@ -282,6 +322,8 @@ export default class ComfyUI {
                         "title": "CLIP Text Encode (Prompt)"
                     }
                 },
+                ${pipedControlNetDepth.partialWorkflow}
+                ${pipedControlNetNormal.partialWorkflow}
                 "${newRegionId}": {
                     "inputs": {
                         "mask": [
@@ -289,7 +331,7 @@ export default class ComfyUI {
                             0
                         ],
                         "conditioning": [
-                            "${conditioningId}",
+                            "${pipedControlNetNormal.conditioningId}",
                             0
                         ],
                         "regions": [
@@ -305,106 +347,39 @@ export default class ComfyUI {
                     }
                 },
             `.trim(),
-            regionId: newRegionId
+            regionId: newRegionId,
+            nodeId: pipedControlNetNormal.nodeId
         };
     };
     
-    private static createWorkflowRegionInputWithControlNet(
-        nodeId: number,
-        maskBase64: string, 
-        prompt: string, 
-        modelId: number,
-        controlNetModelId: number,
-        depthImageId: number,
-        regionId?: number
-    ): { partialWorkflow: string, regionId: number } {
-        const loadMaskId = nodeId++;
-        const conditioningId = nodeId++;
-        const applyControlNetId = nodeId++;
-        const newRegionId = nodeId++;
-        return {
-            partialWorkflow: `
-                "${loadMaskId}": {
-                    "inputs": {
-                        "mask": "${maskBase64}"
-                    },
-                    "class_type": "ETN_LoadMaskBase64",
-                    "_meta": {
-                        "title": "Load Mask (Base64)"
-                    }
-                },
-                "${conditioningId}": {
-                    "inputs": {
-                        "text": "${prompt}",
-                        "clip": [
-                            "${modelId}",
-                            1
-                        ]
-                    },
-                    "class_type": "CLIPTextEncode",
-                    "_meta": {
-                        "title": "CLIP Text Encode (Prompt)"
-                    }
-                },
-                "${applyControlNetId}": {
-                    "inputs": {
-                        "strength": 1,
-                        "conditioning": [
-                            "${conditioningId}",
-                            0
-                        ],
-                        "control_net": [
-                            "${controlNetModelId}",
-                            0
-                        ],
-                        "image": [
-                            "${depthImageId}",
-                            0
-                        ]
-                    },
-                    "class_type": "ControlNetApply",
-                        "_meta": {
-                        "title": "Apply ControlNet"
-                    }
-                },
-                "${newRegionId}": {
-                    "inputs": {
-                        "mask": [
-                            "${loadMaskId}",
-                            0
-                        ],
-                        "conditioning": [
-                            "${applyControlNetId}",
-                            0
-                        ],
-                        "regions": [
-                            ${regionId == null
-                                ? ''
-                                : `"${regionId}", 0`
-                            }
-                        ]
-                    },
-                    "class_type": "ETN_DefineRegion",
-                    "_meta": {
-                        "title": "Define Region"
-                    }
-                },
-            `.trim(),
-            regionId: newRegionId
-        };
-    };
-
     private static createWorkflowBackgroundRegion(
         nodeId: number,
         prompt: string, 
-        modelId: number
+        modelId: number,
+        controlNetDepthModelId: number,
+        controlNetDepthImageId: number,
+        controlNetNormalModelId: number,
+        controlNetNormalImageId: number
     ): { 
         backgroundRegionPartialWorkflow: string, 
         backgroundRegionConditioningId: number, 
-        backgroundRegionId: number 
+        backgroundRegionId: number,
+        nodeId: number
     } {
         const conditioningId = nodeId++;
         const regionId = nodeId++;
+        const pipedControlNetDepth = ComfyUI.pipeConditioningThroughControlNet(
+            nodeId++,
+            conditioningId,
+            controlNetDepthImageId,
+            controlNetDepthModelId
+        );
+        const pipedControlNetNormal = ComfyUI.pipeConditioningThroughControlNet(
+            pipedControlNetDepth.nodeId + 1,
+            pipedControlNetDepth.conditioningId,
+            controlNetNormalImageId,
+            controlNetNormalModelId
+        );
         return {
             backgroundRegionPartialWorkflow: `
                 "${conditioningId}": {
@@ -420,10 +395,12 @@ export default class ComfyUI {
                         "title": "CLIP Text Encode (Prompt)"
                     }
                 },
+                ${pipedControlNetDepth.partialWorkflow}
+                ${pipedControlNetNormal.partialWorkflow}
                 "${regionId}": {
                     "inputs": {
                         "conditioning": [
-                            "${conditioningId}",
+                            "${pipedControlNetNormal.conditioningId}",
                             0
                         ]
                     },
@@ -434,39 +411,35 @@ export default class ComfyUI {
                 },
             `.trim(),
             backgroundRegionConditioningId: conditioningId,
-            backgroundRegionId: regionId
+            backgroundRegionId: regionId,
+            nodeId: pipedControlNetNormal.nodeId
         };
     };
-    
-    private static createWorkflowBackgroundRegionWithControlNet(
+
+    private static pipeConditioningThroughControlNet(
         nodeId: number,
-        prompt: string, 
-        modelId: number,
-        controlNetModelId: number,
-        depthImageId: number
+        conditioningId: number,
+        controlNetImageId: number,
+        controlNetModelId: number
     ): { 
-        backgroundRegionPartialWorkflow: string, 
-        backgroundRegionConditioningId: number, 
-        backgroundRegionId: number 
+        partialWorkflow: string, 
+        conditioningId: number, 
+        nodeId: number 
     } {
-        const conditioningId = nodeId++;
+        // Check if the control net is usable, if not
+        // we just return an empty partial workflow
+        // and redirect the pipe to the conditioning id
+        if (controlNetImageId === -1 || controlNetModelId === -1)
+            return { 
+                partialWorkflow: '',
+                conditioningId: conditioningId,
+                nodeId: nodeId
+            };
+
+        // Create the partial workflow
         const applyControlNetId = nodeId++;
-        const regionId = nodeId++;
         return {
-            backgroundRegionPartialWorkflow: `
-                "${conditioningId}": {
-                    "inputs": {
-                        "text": "${prompt}",
-                        "clip": [
-                            "${modelId}",
-                            1
-                        ]
-                    },
-                    "class_type": "CLIPTextEncode",
-                    "_meta": {
-                        "title": "CLIP Text Encode (Prompt)"
-                    }
-                },
+            partialWorkflow: `
                 "${applyControlNetId}": {
                     "inputs": {
                         "strength": 1,
@@ -479,7 +452,7 @@ export default class ComfyUI {
                             0
                         ],
                         "image": [
-                            "${depthImageId}",
+                            "${controlNetImageId}",
                             0
                         ]
                     },
@@ -488,21 +461,9 @@ export default class ComfyUI {
                         "title": "Apply ControlNet"
                     }
                 },
-                "${regionId}": {
-                    "inputs": {
-                        "conditioning": [
-                            "${applyControlNetId}",
-                            0
-                        ]
-                    },
-                    "class_type": "ETN_BackgroundRegion",
-                    "_meta": {
-                        "title": "Background Region"
-                    }
-                },
             `.trim(),
-            backgroundRegionConditioningId: conditioningId,
-            backgroundRegionId: regionId
+            conditioningId: applyControlNetId,
+            nodeId: applyControlNetId
         };
     };
 }

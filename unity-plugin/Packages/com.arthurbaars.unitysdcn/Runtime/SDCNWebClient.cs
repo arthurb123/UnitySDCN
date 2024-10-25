@@ -10,19 +10,25 @@ namespace UnitySDCN
     // Web client for the SDCN server
     internal static class SDCNWebClient {
         /**
-        * Generate an image from a segmented image
-        * and a list of segments
-        * @param depthImage The depth image of the scene
+        * Generate an image using any SDCN backend.
+        * @param serverAddress The address of the SDCN backend
+        * @param width The image width in pixels
+        * @param height The image height in pixels
         * @param segments The segments of the image
         * @param backgroundDescription The description of the background
         * @param negativeDescription The description of the negative
+        * @param depthImage The optional depth image of the scene
+        * @param normalImage The optional normal image of the scene
         * @return A task which will return the generated image
         */
         internal static async Task<Texture2D?> GenerateImage(
-            byte[] depthImage,
+            string serverAddress,
+            int width, int height,
             SDCNSegment[] segments,
             string backgroundDescription,
-            string negativeDescription
+            string negativeDescription,
+            byte[]? depthImage = null,
+            byte[]? normalImage = null
         ) {
             // Convert the segments to a JSON string
             // in the form of a list where;
@@ -44,17 +50,6 @@ namespace UnitySDCN
                 segmentsDictJson.Length--;
             segmentsDictJson.Append("]");
 
-            // Get the server address from the SDCNManager instance
-            if (SDCNManager.Instance == null)
-            {
-                SDCNLogger.Error(
-                    typeof(SDCNWebClient),
-                    "Could not generate image from segmented image, no SDCNManager instance found"
-                );
-                return null;
-            }
-            string serverAddress = SDCNManager.Instance.WebServerAddress;
-
             // Send a POST request to the web server /generate endpoint
             string generateEndpoint = $"{serverAddress}/generate";
             SDCNLogger.Log(
@@ -64,13 +59,19 @@ namespace UnitySDCN
             );
 
             // Construct the JSON body
-            string jsonBody = $@"
-            {{
-                ""depthImage"": ""{System.Convert.ToBase64String(depthImage)}"",
-                ""segments"": {segmentsDictJson},
-                ""backgroundPrompt"": ""{backgroundDescription}"",
-                ""negativePrompt"": ""{negativeDescription}""
-            }}";
+            StringBuilder jsonBodyBuilder = new();
+            jsonBodyBuilder.AppendLine("{");
+            jsonBodyBuilder.AppendLine($"\"width\": {width},");
+            jsonBodyBuilder.AppendLine($"\"height\": {height},");
+            jsonBodyBuilder.AppendLine($"\"segments\": {segmentsDictJson},");
+            if (depthImage != null)
+                jsonBodyBuilder.AppendLine($"\"depthImage\": \"{System.Convert.ToBase64String(depthImage)}\",");
+            if (normalImage != null)
+                jsonBodyBuilder.AppendLine($"\"normalImage\": \"{System.Convert.ToBase64String(normalImage)}\",");
+            jsonBodyBuilder.AppendLine($"\"backgroundPrompt\": \"{backgroundDescription}\",");
+            jsonBodyBuilder.AppendLine($"\"negativePrompt\": \"{negativeDescription}\"");
+            jsonBodyBuilder.AppendLine("}");
+            string jsonBody = jsonBodyBuilder.ToString();
 
             // Log
             SDCNLogger.Log(

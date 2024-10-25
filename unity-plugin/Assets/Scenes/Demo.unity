@@ -276,6 +276,7 @@ MonoBehaviour:
   _excludeLayers:
     serializedVersion: 2
     m_Bits: 0
+  _mode: -1
   captureScale: 0.75
   _backgroundDescription: clear blue sky
   _negativeDescription: cartoon, stylistic, blurry, bad quality
