@@ -428,6 +428,7 @@ GameObject:
   - component: {fileID: 639281532}
   - component: {fileID: 639281531}
   - component: {fileID: 639281530}
+  - component: {fileID: 639281534}
   m_Layer: 0
   m_Name: Ground
   m_TagString: Untagged
@@ -536,6 +537,18 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 639281528}
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &639281534
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 639281528}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3812127ecc434964e8ffd58d99f64a86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &658577743
 GameObject:
   m_ObjectHideFlags: 0
@@ -549,6 +562,7 @@ GameObject:
   - component: {fileID: 658577747}
   - component: {fileID: 658577746}
   - component: {fileID: 658577745}
+  - component: {fileID: 658577749}
   m_Layer: 0
   m_Name: Bucket
   m_TagString: Untagged
@@ -657,6 +671,18 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 658577743}
   m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &658577749
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 658577743}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3812127ecc434964e8ffd58d99f64a86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -719,6 +745,7 @@ GameObject:
   - component: {fileID: 947074154}
   - component: {fileID: 947074153}
   - component: {fileID: 947074152}
+  - component: {fileID: 947074156}
   m_Layer: 0
   m_Name: Cottage
   m_TagString: Untagged
@@ -825,6 +852,18 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 947074150}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &947074156
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 947074150}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3812127ecc434964e8ffd58d99f64a86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1065296602
 GameObject:
   m_ObjectHideFlags: 0
@@ -923,6 +962,7 @@ GameObject:
   - component: {fileID: 1492541845}
   - component: {fileID: 1492541844}
   - component: {fileID: 1492541843}
+  - component: {fileID: 1492541847}
   m_Layer: 0
   m_Name: Church
   m_TagString: Untagged
@@ -1029,6 +1069,18 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1492541841}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1492541847
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1492541841}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3812127ecc434964e8ffd58d99f64a86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1768948749
 GameObject:
   m_ObjectHideFlags: 0
@@ -1042,6 +1094,7 @@ GameObject:
   - component: {fileID: 1768948753}
   - component: {fileID: 1768948752}
   - component: {fileID: 1768948751}
+  - component: {fileID: 1768948755}
   m_Layer: 0
   m_Name: Well
   m_TagString: Untagged
@@ -1150,6 +1203,18 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1768948749}
   m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1768948755
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1768948749}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3812127ecc434964e8ffd58d99f64a86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1848523816
 GameObject:
   m_ObjectHideFlags: 0
@@ -1163,6 +1228,7 @@ GameObject:
   - component: {fileID: 1848523819}
   - component: {fileID: 1848523818}
   - component: {fileID: 1848523817}
+  - component: {fileID: 1848523822}
   m_Layer: 0
   m_Name: Market Stall
   m_TagString: Untagged
@@ -1269,6 +1335,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1463354747}
   m_LocalEulerAnglesHint: {x: 0, y: -28.847, z: 0}
+--- !u!114 &1848523822
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1848523816}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3812127ecc434964e8ffd58d99f64a86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2139360583
 GameObject:
   m_ObjectHideFlags: 0
@@ -1282,6 +1360,7 @@ GameObject:
   - component: {fileID: 2139360587}
   - component: {fileID: 2139360586}
   - component: {fileID: 2139360585}
+  - component: {fileID: 2139360589}
   m_Layer: 0
   m_Name: Church Door
   m_TagString: Untagged
@@ -1388,6 +1467,18 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2139360583}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &2139360589
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2139360583}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3812127ecc434964e8ffd58d99f64a86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
