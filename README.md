@@ -15,19 +15,23 @@ Unity URP demo scene       |  Post visualization
 5. Modify the scene and use the `SDCNManager` game object to generate images.
 
 ## Models
-<u>ControlNet Flux.1</u>
+<ins>ControlNet Flux.1</ins>
 * Depth: https://huggingface.co/jasperai/Flux.1-dev-Controlnet-Depth
 * Normal: https://huggingface.co/jasperai/Flux.1-dev-Controlnet-Surface-Normals
 
-<u>ControlNet SD1.5</u>
+$${\color{orange}[WARNING]}$$ After testing, it seems that Flux.1 does not support the regional conditioning
+as implemented in the pipeline. However, recent work does introduce the capability
+for this: https://github.com/instantX-research/Regional-Prompting-FLUX
+
+<ins>ControlNet SD1.5</ins>
 * Depth: https://huggingface.co/lllyasviel/sd-controlnet-depth
 * Normal: https://huggingface.co/lllyasviel/sd-controlnet-normal
 
-<u>ControlNet SDXL</u>
+<ins>ControlNet SDXL</ins>
 * Depth: https://huggingface.co/diffusers/controlnet-depth-sdxl-1.0
 * Normal: <i>NO (WORKING) MODEL AVAILABLE</i>
 
-Unfortunately, Normals are not easily supported for SDXL. There only exists
+$${\color{orange}[WARNING]}$$ Unfortunately, Normals are not easily supported for SDXL. There only exists
 a so called "LLLite" model but this requires a custom node in ComfyUI which
 is a lot of extra work to get it to work in this pipeline.
 
@@ -37,3 +41,4 @@ SDCNCamera settings in the Unity frontend.
 ## Roadmap
 * Add region ordering based on camera-object distance metric
 * Add SDXL normal support using LLLite with: https://github.com/kohya-ss/ControlNet-LLLite-ComfyUI
+* Further test Flux.1 and/or add regional conditioning support with: https://github.com/instantX-research/Regional-Prompting-FLUX

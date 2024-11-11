@@ -288,12 +288,14 @@ export default class ComfyUI {
         const newRegionId = nodeId++;
         const pipedControlNetDepth = ComfyUI.pipeConditioningThroughControlNet(
             nodeId++,
+            modelId,
             conditioningId,
             controlNetDepthImageId,
             controlNetDepthModelId
         );
         const pipedControlNetNormal = ComfyUI.pipeConditioningThroughControlNet(
             pipedControlNetDepth.nodeId + 1,
+            modelId,
             pipedControlNetDepth.conditioningId,
             controlNetNormalImageId,
             controlNetNormalModelId
@@ -370,12 +372,14 @@ export default class ComfyUI {
         const regionId = nodeId++;
         const pipedControlNetDepth = ComfyUI.pipeConditioningThroughControlNet(
             nodeId++,
+            modelId,
             conditioningId,
             controlNetDepthImageId,
             controlNetDepthModelId
         );
         const pipedControlNetNormal = ComfyUI.pipeConditioningThroughControlNet(
             pipedControlNetDepth.nodeId + 1,
+            modelId,
             pipedControlNetDepth.conditioningId,
             controlNetNormalImageId,
             controlNetNormalModelId
@@ -418,6 +422,7 @@ export default class ComfyUI {
 
     private static pipeConditioningThroughControlNet(
         nodeId: number,
+        modelId: number,
         conditioningId: number,
         controlNetImageId: number,
         controlNetModelId: number
@@ -443,9 +448,19 @@ export default class ComfyUI {
                 "${applyControlNetId}": {
                     "inputs": {
                         "strength": 1,
-                        "conditioning": [
+                        "start_percent": 0,
+                        "end_percent": 1,
+                        "positive": [
                             "${conditioningId}",
                             0
+                        ],
+                        "negative": [
+                            "${conditioningId}",
+                            0
+                        ],
+                        "vae": [
+                            "${modelId}",
+                            2
                         ],
                         "control_net": [
                             "${controlNetModelId}",
@@ -456,7 +471,7 @@ export default class ComfyUI {
                             0
                         ]
                     },
-                    "class_type": "ControlNetApply",
+                    "class_type": "ControlNetApplyAdvanced",
                         "_meta": {
                         "title": "Apply ControlNet"
                     }

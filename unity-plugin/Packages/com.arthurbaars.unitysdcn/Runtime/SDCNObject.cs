@@ -6,11 +6,9 @@ using UnityEngine;
 namespace UnitySDCN {
     [RequireComponent(typeof(MeshFilter))]
     public class SDCNObject : MonoBehaviour {
-        public string Description => _description;
-
         [Header("Settings")]
         [TextArea(3, 10)]
-        [SerializeField] private string _description = string.Empty;
+        public string Description = string.Empty;
 
         public AABB? GetBoundingBox() {
             // Get the mesh filter component
