@@ -58,8 +58,8 @@ console.log(`Using ComfyUI configuration '${options.configuration}':`);
 console.log(`> Model:      ${comfyUIConfiguration.checkpointModelName}`);
 console.log(`> ControlNet: ${comfyUIConfiguration.useControlNet}`);
 if (comfyUIConfiguration.useControlNet) {
-    console.log(`> CN Depth:   ${comfyUIConfiguration.controlNetDepthModelName}`);
-    console.log(`> CN Normals: ${comfyUIConfiguration.controlNetNormalModelName}`);
+    console.log(`> CN Depth:   [${comfyUIConfiguration.controlNetDepthMode}] ${comfyUIConfiguration.controlNetDepthModelName}`);
+    console.log(`> CN Normals: [${comfyUIConfiguration.controlNetNormalMode}] ${comfyUIConfiguration.controlNetNormalModelName}`);
 }
 console.log(`> Steps:      ${comfyUIConfiguration.steps}`);
 console.log(`> CFG:        ${comfyUIConfiguration.cfg}`);
@@ -82,12 +82,22 @@ if (comfyUIConfiguration.useControlNet) {
         console.error('Please provide a ControlNet normal model name if ControlNet is enabled.');
         process.exit(1);
     }
+
+    if (comfyUIConfiguration.controlNetDepthMode !== 'normal' 
+    &&  comfyUIConfiguration.controlNetDepthMode !== 'lllite') {
+        console.error('ControlNet depth mode must be either "normal" or "lllite".');
+        process.exit(1);
+    }
+    if (comfyUIConfiguration.controlNetNormalMode !== 'normal'
+    &&  comfyUIConfiguration.controlNetNormalMode !== 'lllite') {
+        console.error('ControlNet normal mode must be either "normal" or "lllite".');
+        process.exit(1);
+    }
 }
 
 // Setup server and ComfyUI client
 const app = express();
-// TODO: Do we need to make this configurable?
-const comfyUIClientId = 'b3b7d4b6-3b9a-4c6e-9d2b-0b4d6b6f5b9c';
+const comfyUIClientId = `UnitySDCN-ComfyUI-${Math.floor(Math.random() * 10000)}`;
 const comfyUIClient = new ComfyUIClient(comfyUIConfiguration.address, comfyUIClientId);
 
 // Reset temp folder
@@ -110,6 +120,7 @@ app.post('/generate', async (req, res) => {
         const normalImageBase64 = req.body.normalImage as string | undefined;
         const backgroundPrompt = req.body.backgroundPrompt as string;
         const negativePrompt = req.body.negativePrompt as string;
+        const seed = req.body.seed as number | undefined;
 
         // Attempt to connect to ComfyUI with a timeout,
         // this is necessary as the library we use does not
@@ -134,14 +145,15 @@ app.post('/generate', async (req, res) => {
         console.log(`Creating dynamic workflow..`);
         let generationId = currentGenerationId++;
         const workflow = await ComfyUI.createWorkflow(
+            comfyUIConfiguration,
             generationId,
             width, height,
             segments,
-            depthImageBase64,
-            normalImageBase64,
             negativePrompt, 
             backgroundPrompt,
-            comfyUIConfiguration
+            depthImageBase64,
+            normalImageBase64,
+            seed
         );
 
         // Generate images
