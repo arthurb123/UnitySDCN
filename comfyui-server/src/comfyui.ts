@@ -5,14 +5,15 @@ import Utils from "./utils";
 
 export default class ComfyUI {
     static async createWorkflow (
+        comfyUIConfiguration: ComfyUIConfiguration,
         generationId: number,
         width: number, height: number,
         segments: Segment[],
-        depthImageBase64: string | undefined,
-        normalImageBase64: string | undefined,
         negativePrompt: string,
         backgroundPrompt: string,
-        comfyUIConfiguration: ComfyUIConfiguration
+        depthImageBase64: string | undefined,
+        normalImageBase64: string | undefined,
+        seed: number | undefined
     ) : Promise<Prompt> {
         // Attempt to decode the optional base64
         // images to buffers
@@ -29,8 +30,7 @@ export default class ComfyUI {
         const generationSettings = {
             imageWidth: width,
             imageHeight: height,
-            // TODO: Make seed customizable on the frontend
-            seed: Math.floor(Math.random() * 1000000000),
+            seed: seed ?? Math.floor(Math.random() * 1000000000),
             // Don't forget the user-defined ComfyUI configuration!
             ...comfyUIConfiguration
         };
@@ -49,10 +49,85 @@ export default class ComfyUI {
         const useControlNet              = comfyUIConfiguration.useControlNet;
         const useControlNetNormals       = useControlNet && normalImageBuffer != null;
         const useControlNetDepth         = useControlNet && depthImageBuffer  != null;
-        const CONTROLNET_DEPTH_MODEL_ID  = useControlNetDepth   ? nodeCounter++ : -1;
+
         const CONTROLNET_DEPTH_IMAGE_ID  = useControlNetDepth   ? nodeCounter++ : -1;
-        const CONTROLNET_NORMAL_MODEL_ID = useControlNetNormals ? nodeCounter++ : -1;
         const CONTROLNET_NORMAL_IMAGE_ID = useControlNetNormals ? nodeCounter++ : -1;
+        const CONTROLNET_DEPTH_MODEL_ID  = 
+            (comfyUIConfiguration.controlNetDepthMode === 'normal' && useControlNetDepth) 
+                ? nodeCounter++ 
+                : -1;
+        const CONTROLNET_NORMAL_MODEL_ID = 
+            (comfyUIConfiguration.controlNetNormalMode === 'normal' && useControlNetNormals) 
+                ? nodeCounter++ 
+                : -1;
+
+        // Create partial workflows for the loading of
+        // either normal controlnet models, or piped LLLite 
+        // models based on the specified mode
+        let partialControlNetWorkflow = '';
+        let guidingModelId = MODEL_ID;
+        if (useControlNetDepth) {
+            switch (comfyUIConfiguration.controlNetDepthMode) {
+                case 'normal':
+                    partialControlNetWorkflow += 
+                        `"${CONTROLNET_DEPTH_MODEL_ID}": {
+                            "inputs": {
+                                "control_net_name": "${generationSettings.controlNetDepthModelName}"
+                            },
+                            "class_type": "ControlNetLoader",
+                                "_meta": {
+                                "title": "Load ControlNet Model"
+                            }
+                        },`.trim();
+                break;
+                case 'lllite':
+                    const {
+                        partialWorkflow,
+                        loadLLLiteId
+                    } = ComfyUI.pipeModelThroughLLLiteControlNet(
+                        nodeCounter++,
+                        guidingModelId,
+                        CONTROLNET_DEPTH_IMAGE_ID,
+                        comfyUIConfiguration.controlNetDepthModelName,
+                        0.2 // TODO: This might need some finetuning
+                    );
+        
+                    partialControlNetWorkflow += partialWorkflow;
+                    guidingModelId = loadLLLiteId;
+                break;
+            }
+        }
+        if (useControlNetNormals) {
+            switch (comfyUIConfiguration.controlNetNormalMode) {
+                case 'normal':
+                    partialControlNetWorkflow += 
+                        `"${CONTROLNET_NORMAL_MODEL_ID}": {
+                            "inputs": {
+                                "control_net_name": "${generationSettings.controlNetNormalModelName}"
+                            },
+                            "class_type": "ControlNetLoader",
+                                "_meta": {
+                                "title": "Load ControlNet Model"
+                            }
+                        },`.trim();
+                break;
+                case 'lllite':
+                    const {
+                        partialWorkflow,
+                        loadLLLiteId
+                    } = ComfyUI.pipeModelThroughLLLiteControlNet(
+                        nodeCounter++,
+                        guidingModelId,
+                        CONTROLNET_NORMAL_IMAGE_ID,
+                        comfyUIConfiguration.controlNetNormalModelName,
+                        0.2 // TODO: This might need some finetuning
+                    );
+        
+                    partialControlNetWorkflow += partialWorkflow;
+                    guidingModelId = loadLLLiteId;
+                break;
+            }
+        }
     
         // Create background region partial workflow
         const {
@@ -118,17 +193,9 @@ export default class ComfyUI {
                     "title": "Load Checkpoint"
                 }
             },
+            ${partialControlNetWorkflow}
             ${useControlNetDepth
-            ? `"${CONTROLNET_DEPTH_MODEL_ID}": {
-                    "inputs": {
-                        "control_net_name": "${generationSettings.controlNetDepthModelName}"
-                    },
-                    "class_type": "ControlNetLoader",
-                        "_meta": {
-                        "title": "Load ControlNet Model"
-                    }
-                },
-                "${CONTROLNET_DEPTH_IMAGE_ID}": {
+            ? `"${CONTROLNET_DEPTH_IMAGE_ID}": {
                     "inputs": {
                         "image": "${depthImageBase64}"
                     },
@@ -136,19 +203,10 @@ export default class ComfyUI {
                     "_meta": {
                         "title": "Load Image (Base64)"
                     }
-                },` 
+                },`
             : ''}
             ${useControlNetNormals
-            ? `"${CONTROLNET_NORMAL_MODEL_ID}": {
-                    "inputs": {
-                        "control_net_name": "${generationSettings.controlNetNormalModelName}"
-                    },
-                    "class_type": "ControlNetLoader",
-                        "_meta": {
-                        "title": "Load ControlNet Model"
-                    }
-                },
-                "${CONTROLNET_NORMAL_IMAGE_ID}": {
+            ? `"${CONTROLNET_NORMAL_IMAGE_ID}": {
                     "inputs": {
                         "image": "${normalImageBase64}"
                     },
@@ -156,7 +214,7 @@ export default class ComfyUI {
                     "_meta": {
                         "title": "Load Image (Base64)"
                     }
-                },` 
+                },`
             : ''}
             "${NEGATIVE_CONDITIONING_ID}": {
                 "inputs": {
@@ -244,7 +302,7 @@ export default class ComfyUI {
             "${REGION_ATTENTION_MASK_ID}": {
                 "inputs": {
                     "model": [
-                        "${MODEL_ID}",
+                        "${guidingModelId}",
                         0
                     ],
                     "regions": [
@@ -288,12 +346,14 @@ export default class ComfyUI {
         const newRegionId = nodeId++;
         const pipedControlNetDepth = ComfyUI.pipeConditioningThroughControlNet(
             nodeId++,
+            modelId,
             conditioningId,
             controlNetDepthImageId,
             controlNetDepthModelId
         );
         const pipedControlNetNormal = ComfyUI.pipeConditioningThroughControlNet(
             pipedControlNetDepth.nodeId + 1,
+            modelId,
             pipedControlNetDepth.conditioningId,
             controlNetNormalImageId,
             controlNetNormalModelId
@@ -370,12 +430,14 @@ export default class ComfyUI {
         const regionId = nodeId++;
         const pipedControlNetDepth = ComfyUI.pipeConditioningThroughControlNet(
             nodeId++,
+            modelId,
             conditioningId,
             controlNetDepthImageId,
             controlNetDepthModelId
         );
         const pipedControlNetNormal = ComfyUI.pipeConditioningThroughControlNet(
             pipedControlNetDepth.nodeId + 1,
+            modelId,
             pipedControlNetDepth.conditioningId,
             controlNetNormalImageId,
             controlNetNormalModelId
@@ -416,8 +478,49 @@ export default class ComfyUI {
         };
     };
 
+    private static pipeModelThroughLLLiteControlNet(
+        nodeId: number,
+        modelId: number,
+        controlNetImageId: number,
+        controlNetModelName: string,
+        strength: number = 1
+    ): {
+        partialWorkflow: string,
+        loadLLLiteId: number
+    } {
+        // Create partial workflow
+        const loadLLLiteId = nodeId++;
+        return {
+            partialWorkflow: `
+                "${loadLLLiteId}": {
+                    "inputs": {
+                        "strength": ${strength},
+                        "steps": 0,
+                        "start_percent": 0,
+                        "end_percent": 0,
+                        "model": [
+                            "${modelId}",
+                            0
+                        ],
+                        "cond_image": [
+                            "${controlNetImageId}",
+                            0
+                        ],
+                        "model_name": "${controlNetModelName}"
+                    },
+                    "class_type": "LLLiteLoader",
+                    "_meta": {
+                        "title": "Load LLLite"
+                    }
+                },
+            `.trim(),
+            loadLLLiteId: loadLLLiteId
+        }
+    }
+
     private static pipeConditioningThroughControlNet(
         nodeId: number,
+        modelId: number,
         conditioningId: number,
         controlNetImageId: number,
         controlNetModelId: number
@@ -443,9 +546,19 @@ export default class ComfyUI {
                 "${applyControlNetId}": {
                     "inputs": {
                         "strength": 1,
-                        "conditioning": [
+                        "start_percent": 0,
+                        "end_percent": 1,
+                        "positive": [
                             "${conditioningId}",
                             0
+                        ],
+                        "negative": [
+                            "${conditioningId}",
+                            0
+                        ],
+                        "vae": [
+                            "${modelId}",
+                            2
                         ],
                         "control_net": [
                             "${controlNetModelId}",
@@ -456,7 +569,7 @@ export default class ComfyUI {
                             0
                         ]
                     },
-                    "class_type": "ControlNetApply",
+                    "class_type": "ControlNetApplyAdvanced",
                         "_meta": {
                         "title": "Apply ControlNet"
                     }

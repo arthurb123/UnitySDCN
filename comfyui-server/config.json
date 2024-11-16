@@ -1,9 +1,14 @@
 {
     "address": "localhost:8188",
+
     "checkpointModelName": "Juggernaut_X_RunDiffusion_Hyper.safetensors",
-    "controlNetDepthModelName": "controlnet-depth-sdxl-1.0.fp16.safetensors",
-    "controlNetNormalModelName": "controlnetxlCNXL_bdsqlszNormal.safetensors",
+
     "useControlNet": true,
+    "controlNetDepthModelName": "controlnet-depth-sdxl-1.0.fp16.safetensors",
+    "controlNetDepthMode": "normal",
+    "controlNetNormalModelName": "NormalmapbaeControlnet_v10.safetensors",
+    "controlNetNormalMode": "lllite",
+
     "steps": 4,
     "cfg": 0.8,
     "sampler": "dpmpp_sde",

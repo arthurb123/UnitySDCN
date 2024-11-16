@@ -3,13 +3,20 @@
 using UnityEngine;
 
 namespace UnitySDCN {
-    internal class SDCNViewer
+    public class SDCNViewer
     {
+        public static SDCNViewer? Instance { get; private set; }
+        public static bool Active => Instance != null && Instance.IsShowingTexture;
+
         internal bool IsShowingTexture => _textureCamera != null;
 
         private Camera? _mainCamera;
         private Camera? _textureCamera;
         private Texture2D? _overlayTexture;
+
+        public void Hide() {
+            SwitchBackToMainCamera();
+        }
 
         internal void ShowTexture(Texture2D overlayTexture, LayerMask excludeLayers)
         {
@@ -49,6 +56,9 @@ namespace UnitySDCN {
 
             // Step 5: Switch from the main camera to the texture camera
             SwitchToTextureCamera();
+
+            // Set instance
+            Instance = this;
         }
 
         internal void CreateFullscreenQuad()
@@ -104,6 +114,7 @@ namespace UnitySDCN {
             {
                 Object.Destroy(_textureCamera.gameObject);
                 _textureCamera = null;
+                Instance = null;
             }
             if (_overlayTexture != null)
             {

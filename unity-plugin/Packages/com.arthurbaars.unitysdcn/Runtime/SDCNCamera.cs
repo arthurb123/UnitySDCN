@@ -469,6 +469,20 @@ namespace UnitySDCN
                     DestroyImmediate(maskImage);
                 }
 
+                // We want to sort segments on their SDCNObject
+                // bounding boxes, so we can make use of region
+                // ordering
+                Vector3 cameraPosition = _camera.transform.position;
+                segments.Sort((a, b) => {
+                    Bounds? boundsA = a.SDCNObject.GetBounds();
+                    Bounds? boundsB = b.SDCNObject.GetBounds();
+                    if (boundsA == null || boundsB == null) 
+                        return 0;
+                    Vector3 closestA = boundsA.Value.ClosestPoint(cameraPosition);
+                    Vector3 closestB = boundsB.Value.ClosestPoint(cameraPosition);
+                    return (int)(Vector3.Distance(closestA, cameraPosition) - Vector3.Distance(closestB, cameraPosition));
+                });
+
                 return segments.ToArray();
             }
             finally {

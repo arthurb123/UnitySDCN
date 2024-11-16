@@ -6,13 +6,11 @@ using UnityEngine;
 namespace UnitySDCN {
     [RequireComponent(typeof(MeshFilter))]
     public class SDCNObject : MonoBehaviour {
-        public string Description => _description;
-
         [Header("Settings")]
         [TextArea(3, 10)]
-        [SerializeField] private string _description = string.Empty;
+        public string Description = string.Empty;
 
-        public AABB? GetBoundingBox() {
+        public Bounds? GetBounds() {
             // Get the mesh filter component
             MeshFilter meshFilter = GetComponent<MeshFilter>();
             if (meshFilter == null) {
@@ -34,25 +32,7 @@ namespace UnitySDCN {
             }
 
             // Get the bounds
-            Bounds bounds = mesh.bounds;
-
-            // Get the min and max points
-            Vector3 min = bounds.min;
-            Vector3 max = bounds.max;
-
-            // Return the AABB
-            return new AABB(min, max);
-        }
-    }
-
-    [Serializable]
-    public class AABB {
-        public Vector3 Min { get; private set; }
-        public Vector3 Max { get; private set; }
-
-        public AABB(Vector3 min, Vector3 max) {
-            Min = min;
-            Max = max;
+            return mesh.bounds;
         }
     }
 }
