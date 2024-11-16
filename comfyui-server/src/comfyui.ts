@@ -89,7 +89,7 @@ export default class ComfyUI {
                         guidingModelId,
                         CONTROLNET_DEPTH_IMAGE_ID,
                         comfyUIConfiguration.controlNetDepthModelName,
-                        0.25 // TODO: This might need some finetuning
+                        0.2 // TODO: This might need some finetuning
                     );
         
                     partialControlNetWorkflow += partialWorkflow;
@@ -120,7 +120,7 @@ export default class ComfyUI {
                         guidingModelId,
                         CONTROLNET_NORMAL_IMAGE_ID,
                         comfyUIConfiguration.controlNetNormalModelName,
-                        0.25 // TODO: This might need some finetuning
+                        0.2 // TODO: This might need some finetuning
                     );
         
                     partialControlNetWorkflow += partialWorkflow;

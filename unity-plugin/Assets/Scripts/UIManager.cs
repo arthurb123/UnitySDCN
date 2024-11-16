@@ -5,14 +5,21 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.Rendering;
+using UnitySDCN;
 
 public class UIManager : MonoBehaviour
 {
     [Header("Scene")]
+    public SDCNManager SDCNManager;
     public FreeCamera FreeCameraController;
     public RuntimeTransformHandle GizmoController;
 
     [Header("Components")]
+    public GameObject RenderOverlayPanel;
+    [Space]
+    public GameObject HideViewerPanel;
+    public GameObject RenderPanel;
+    [Space]
     public GameObject SelectedPanel;
     public Image SelectedPromptHighlightedImage;
     public Image SelectedPositionHighlightedImage;
@@ -25,7 +32,9 @@ public class UIManager : MonoBehaviour
     void Update() {
         // If the gizmo controller is available and active,
         // show the selected panel and highlight the selected mode
-        if (GizmoController != null && GizmoController.gameObject.activeInHierarchy) {
+        if (GizmoController != null 
+        &&  GizmoController.gameObject.activeInHierarchy
+        && !SDCNManager.Rendering) {
             SelectedPanel.SetActive(true);
 
             // Disable all highlights by default
@@ -75,6 +84,59 @@ public class UIManager : MonoBehaviour
         }
         else
             SelectedPanel.SetActive(false);
+
+        // Check if we the prompt panel is active, we
+        // do not want to render the scene while editing
+        if (PromptPanel.activeInHierarchy)
+            return;
+
+        // Check if user pressed the space button, if we are
+        // not already rendering we want to start rendering
+        if (Input.GetKeyDown(KeyCode.Space) 
+        && !RenderOverlayPanel.activeInHierarchy
+        && !SDCNViewer.Active) {
+            // Disable the free camera controller
+            FreeCameraController.enabled = false;
+
+            // Enable the render overlay panel
+            RenderOverlayPanel.SetActive(true);
+
+            // Issue a render call to the SDCNManager
+            SDCNManager.RenderImage();
+        }
+
+        // If the render overlay is active, and the SDCNManager is not
+        // rendering, we want to disable the render overlay panel. We do
+        // not want to re-enable the free camera, as a texture viewer is
+        // shown after rendering which will block the camera view
+        if (RenderOverlayPanel.activeInHierarchy && !SDCNManager.Rendering) {
+            // Disable the render overlay panel
+            RenderOverlayPanel.SetActive(false);
+        }
+
+        // If the user pressed the escape button while the SDCNViewer is active,
+        // we want to hide the viewer and enable the free camera controller
+        if (SDCNViewer.Active) {
+            // Show hide viewer panel
+            HideViewerPanel.SetActive(true);
+
+            // Hide the render panel
+            RenderPanel.SetActive(false);
+
+            if (Input.GetKeyDown(KeyCode.Escape)) {
+                // Hide the SDCNViewer
+                SDCNViewer.Instance.Hide();
+
+                // Enable the free camera controller
+                FreeCameraController.enabled = true;
+
+                // Hide the hide viewer panel
+                HideViewerPanel.SetActive(false);
+
+                // Show the render
+                RenderPanel.SetActive(true);
+            }
+        }
     }
 
     public void StopEditingPrompt() {

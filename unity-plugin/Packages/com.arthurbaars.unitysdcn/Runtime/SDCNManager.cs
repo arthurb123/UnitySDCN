@@ -10,6 +10,7 @@ namespace UnitySDCN {
     {
         public static SDCNManager? Instance { get; private set; }
 
+        public bool Rendering { get; private set; }
         public SDCNVerbosity LogVerbosity => _logVerbosity;
         public string WebServerAddress => _webServerAddress;
 
@@ -44,6 +45,15 @@ namespace UnitySDCN {
                 return;
             }
 
+            // Check if we are already rendering
+            if (Rendering) {
+                SDCNLogger.Warning(
+                    typeof(SDCNManager), 
+                    "Could not render image, already rendering"
+                );
+                return;
+            }
+
             // Check if have a valid camera
             if (_camera == null) {
                 SDCNLogger.Error(
@@ -65,6 +75,9 @@ namespace UnitySDCN {
                 callback();
             }
             StartCoroutine(hideViewer(async () => {
+                // Set rendering
+                Rendering = true;
+
                 // Capture camera data
                 SDCNCameraCapture? cameraCapture = _camera.Capture();
                 if (cameraCapture == null) {
@@ -132,6 +145,9 @@ namespace UnitySDCN {
                     typeof(SDCNManager), 
                     "Successfully rendered image, created viewer to display texture"
                 );
+
+                // Reset rendering
+                Rendering = false;
             }));
         }
     }

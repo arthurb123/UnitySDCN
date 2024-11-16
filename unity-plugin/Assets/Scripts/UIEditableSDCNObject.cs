@@ -28,6 +28,12 @@ public class UIEditableSDCNObject : MonoBehaviour
     }
 
     void Update() {
+        // If the SDCNViewer is active, stop editing
+        if (SDCNViewer.Active) {
+            Selected.Deselect();
+            return;
+        }
+
         // Check if mouse was pressed down (left click)
         if (Selected == null && Input.GetMouseButtonDown(0)) {
             // Check if mouse is over this object
