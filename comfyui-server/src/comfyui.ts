@@ -89,7 +89,7 @@ export default class ComfyUI {
                         guidingModelId,
                         CONTROLNET_DEPTH_IMAGE_ID,
                         comfyUIConfiguration.controlNetDepthModelName,
-                        0.2 // TODO: This might need some finetuning
+                        0.45 // TODO: This might need some finetuning
                     );
         
                     partialControlNetWorkflow += partialWorkflow;
@@ -120,7 +120,7 @@ export default class ComfyUI {
                         guidingModelId,
                         CONTROLNET_NORMAL_IMAGE_ID,
                         comfyUIConfiguration.controlNetNormalModelName,
-                        0.2 // TODO: This might need some finetuning
+                        0.45 // TODO: This might need some finetuning
                     );
         
                     partialControlNetWorkflow += partialWorkflow;
@@ -137,7 +137,8 @@ export default class ComfyUI {
             nodeId
         } = ComfyUI.createWorkflowBackgroundRegion(
             nodeCounter, 
-            backgroundPrompt, 
+            backgroundPrompt,
+            NEGATIVE_CONDITIONING_ID,
             MODEL_ID,
             CONTROLNET_DEPTH_MODEL_ID,
             CONTROLNET_DEPTH_IMAGE_ID,
@@ -161,6 +162,7 @@ export default class ComfyUI {
                 segment.maskImageBase64,
                 segment.description,
                 MODEL_ID,
+                NEGATIVE_CONDITIONING_ID,
                 CONTROLNET_DEPTH_MODEL_ID,
                 CONTROLNET_DEPTH_IMAGE_ID,
                 CONTROLNET_NORMAL_MODEL_ID,
@@ -335,6 +337,7 @@ export default class ComfyUI {
         maskBase64: string, 
         prompt: string, 
         modelId: number,
+        negativeConditioningId: number,
         controlNetDepthModelId: number,
         controlNetDepthImageId: number,
         controlNetNormalModelId: number,
@@ -348,6 +351,7 @@ export default class ComfyUI {
             nodeId++,
             modelId,
             conditioningId,
+            negativeConditioningId,
             controlNetDepthImageId,
             controlNetDepthModelId
         );
@@ -355,6 +359,7 @@ export default class ComfyUI {
             pipedControlNetDepth.nodeId + 1,
             modelId,
             pipedControlNetDepth.conditioningId,
+            negativeConditioningId,
             controlNetNormalImageId,
             controlNetNormalModelId
         );
@@ -416,6 +421,7 @@ export default class ComfyUI {
         nodeId: number,
         prompt: string, 
         modelId: number,
+        negativeConditioningId: number,
         controlNetDepthModelId: number,
         controlNetDepthImageId: number,
         controlNetNormalModelId: number,
@@ -432,6 +438,7 @@ export default class ComfyUI {
             nodeId++,
             modelId,
             conditioningId,
+            negativeConditioningId,
             controlNetDepthImageId,
             controlNetDepthModelId
         );
@@ -439,6 +446,7 @@ export default class ComfyUI {
             pipedControlNetDepth.nodeId + 1,
             modelId,
             pipedControlNetDepth.conditioningId,
+            negativeConditioningId,
             controlNetNormalImageId,
             controlNetNormalModelId
         );
@@ -497,7 +505,7 @@ export default class ComfyUI {
                         "strength": ${strength},
                         "steps": 0,
                         "start_percent": 0,
-                        "end_percent": 0,
+                        "end_percent": 100,
                         "model": [
                             "${modelId}",
                             0
@@ -522,8 +530,10 @@ export default class ComfyUI {
         nodeId: number,
         modelId: number,
         conditioningId: number,
+        negativeConditioningId: number,
         controlNetImageId: number,
-        controlNetModelId: number
+        controlNetModelId: number,
+        strength: number = 1
     ): { 
         partialWorkflow: string, 
         conditioningId: number, 
@@ -545,7 +555,7 @@ export default class ComfyUI {
             partialWorkflow: `
                 "${applyControlNetId}": {
                     "inputs": {
-                        "strength": 1,
+                        "strength": ${strength},
                         "start_percent": 0,
                         "end_percent": 1,
                         "positive": [
@@ -553,7 +563,7 @@ export default class ComfyUI {
                             0
                         ],
                         "negative": [
-                            "${conditioningId}",
+                            "${negativeConditioningId}",
                             0
                         ],
                         "vae": [

@@ -695,7 +695,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 0
   _mode: -1
-  captureScale: 0.875
+  captureScale: 0.5
   _backgroundDescription: clear blue sky
   _negativeDescription: cartoon, stylistic, blurry, bad quality
 --- !u!114 &330585549
@@ -1676,7 +1676,7 @@ GameObject:
   m_Component:
   - component: {fileID: 691408535}
   - component: {fileID: 691408534}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: RuntimeTransformHandle
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -29,7 +29,7 @@ public class UIEditableSDCNObject : MonoBehaviour
 
     void Update() {
         // If the SDCNViewer is active, stop editing
-        if (SDCNViewer.Active) {
+        if (SDCNViewer.Active && Selected != null) {
             Selected.Deselect();
             return;
         }

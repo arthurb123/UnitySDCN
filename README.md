@@ -10,7 +10,7 @@ Unity URP demo scene       |  Post visualization
 ## Usage
 1. Install the NPM packages in the `comfyui-server` folder using `npm i` (tested with Node v20)
 2. Run your ComfyUI instance, where you have the following custom nodes installed: 
-    - [ComfyUI-Tooling-Nodes](https://github.com/Acly/comfyui-tooling-nodes)
+    - [ComfyUI-Tooling-Nodes](https://github.com/arthurb123/comfyui-tooling-nodes)
     - [ControlNet-LLLite-ComfyUI](https://github.com/arthurb123/ControlNet-LLLite-ComfyUI)
 3. Edit the `comfyui-server/config.json` file such that all fields are correct (primarily, the address and model names)
 4. Install the UnitySDCN package from the `unity-plugin/Packages/UnitySDCN` folder to your URP project, or open the demo scene located in the `unity-plugin` project.

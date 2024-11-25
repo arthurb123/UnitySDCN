@@ -101,8 +101,23 @@ public class UIManager : MonoBehaviour
             // Enable the render overlay panel
             RenderOverlayPanel.SetActive(true);
 
+            // For all SDCNObjects in the scene, we want to
+            // temporarily change the layer from Outline
+            // to Default if the object is selected
+            UIEditableSDCNObject outlineObject = null;
+            foreach (UIEditableSDCNObject obj in FindObjectsOfType<UIEditableSDCNObject>()) {
+                if (obj.gameObject.layer == LayerMask.NameToLayer("Outline")) {
+                    obj.gameObject.layer = LayerMask.NameToLayer("Default");
+                    outlineObject = obj;
+                }
+            }
+
             // Issue a render call to the SDCNManager
             SDCNManager.RenderImage();
+
+            // Change the layer back to Outline
+            if (outlineObject != null)
+                outlineObject.gameObject.layer = LayerMask.NameToLayer("Outline");
         }
 
         // If the render overlay is active, and the SDCNManager is not
