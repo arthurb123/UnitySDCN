@@ -138,8 +138,8 @@ export default class ComfyUI {
         } = ComfyUI.createWorkflowBackgroundRegion(
             nodeCounter, 
             backgroundPrompt,
-            NEGATIVE_CONDITIONING_ID,
             MODEL_ID,
+            NEGATIVE_CONDITIONING_ID,
             CONTROLNET_DEPTH_MODEL_ID,
             CONTROLNET_DEPTH_IMAGE_ID,
             CONTROLNET_NORMAL_MODEL_ID,

@@ -28,9 +28,13 @@ public class UIEditableSDCNObject : MonoBehaviour
     }
 
     void Update() {
-        // If the SDCNViewer is active, stop editing
-        if (SDCNViewer.Active && Selected != null) {
-            Selected.Deselect();
+        // If the SDCNViewer is active, or we
+        // are rendering, we should not be able to
+        // interact with the scene
+        if (SDCNViewer.Active
+        ||  SDCNManager.Instance.Rendering) {
+            if (Selected == this)
+                Deselect();
             return;
         }
 

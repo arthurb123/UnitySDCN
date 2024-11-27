@@ -8,14 +8,27 @@ namespace UnitySDCN {
         public static SDCNViewer? Instance { get; private set; }
         public static bool Active => Instance != null && Instance.IsShowingTexture;
 
+        public float Opacity {
+            get => _overlayOpacity;
+            set {
+                _overlayOpacity = Mathf.Clamp01(value);
+            }
+        }
         internal bool IsShowingTexture => _textureCamera != null;
 
         private Camera? _mainCamera;
         private Camera? _textureCamera;
         private Texture2D? _overlayTexture;
+        private Material? _overlayMaterial;
+        private float _overlayOpacity = 1.0f;
 
         public void Hide() {
             SwitchBackToMainCamera();
+        }
+
+        internal void Update() {
+            if (_overlayMaterial != null)
+                _overlayMaterial.color = new Color(1, 1, 1, _overlayOpacity);
         }
 
         internal void ShowTexture(Texture2D overlayTexture, LayerMask excludeLayers)
@@ -29,21 +42,25 @@ namespace UnitySDCN {
             _overlayTexture = overlayTexture;
 
             // Step 2: Get reference to the main camera
+            //         and make sure it's depth is -1
             if (_mainCamera == null)
                 _mainCamera = Camera.main;
+            _mainCamera.depth = -1;
 
-            // Step 3: Create a new Camera (we no longer need a RenderTexture)
+            // Step 3: Create a new camera
             GameObject cameraObject = new("SDCNTextureCamera");
             _textureCamera = cameraObject.AddComponent<Camera>();
+            _textureCamera.depth = 0;
 
             // Set the new camera to match the main camera's position and orientation
             _textureCamera.transform.position = _mainCamera.transform.position;
             _textureCamera.transform.rotation = _mainCamera.transform.rotation;
 
-            // Set the camera settings to match the main camera (optional: copy more settings if needed)
+            // Set the camera settings to match the main camera
             _textureCamera.fieldOfView = _mainCamera.fieldOfView;
             _textureCamera.nearClipPlane = _mainCamera.nearClipPlane;
             _textureCamera.farClipPlane = _mainCamera.farClipPlane;
+            _textureCamera.clearFlags = CameraClearFlags.Depth; // Avoid overwriting the main camera's rendering
 
             // Disable the new camera by default, we'll switch to it later
             _textureCamera.enabled = false;
@@ -85,12 +102,13 @@ namespace UnitySDCN {
 
             // Assign the provided Texture2D as the quad's material texture
             Renderer quadRenderer = quad.GetComponent<Renderer>();
-            Material material = new(Shader.Find("Unlit/Transparent"))
+           _overlayMaterial = new Material(Shader.Find("SDCN/UnlitTransparent"))
             {
                 mainTexture = _overlayTexture,
                 renderQueue = 3000
             };
-            quadRenderer.material = material;
+            _overlayMaterial.color = new Color(1, 1, 1, _overlayOpacity);
+            quadRenderer.material = _overlayMaterial;
         }
 
         internal void SwitchToTextureCamera()

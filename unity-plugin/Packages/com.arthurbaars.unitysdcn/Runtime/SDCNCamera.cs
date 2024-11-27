@@ -32,6 +32,7 @@ namespace UnitySDCN
         
         private void Awake()
         {
+            // Get the camera component
             _camera = GetComponent<Camera>();
         }
 

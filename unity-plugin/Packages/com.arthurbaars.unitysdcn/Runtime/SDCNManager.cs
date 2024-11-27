@@ -35,6 +35,14 @@ namespace UnitySDCN {
                 Instance = this;
         }
 
+        private void Update()
+        {
+            // Check if the SDCNViewer is active,
+            // if so we want to call it's update method
+            if (_viewer != null)
+                _viewer.Update();
+        }
+
         public void RenderImage() {
             // Check if in play mode
             if (!Application.isPlaying) {

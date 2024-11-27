@@ -17,7 +17,9 @@ public class UIManager : MonoBehaviour
     [Header("Components")]
     public GameObject RenderOverlayPanel;
     [Space]
-    public GameObject HideViewerPanel;
+    public GameObject ViewerPanel;
+    public Slider ViewerTransparencySlider;
+    [Space]
     public GameObject RenderPanel;
     [Space]
     public GameObject SelectedPanel;
@@ -101,6 +103,9 @@ public class UIManager : MonoBehaviour
             // Enable the render overlay panel
             RenderOverlayPanel.SetActive(true);
 
+            // Reset the viewer transparency slider in advance
+            ViewerTransparencySlider.value = 1f;
+
             // For all SDCNObjects in the scene, we want to
             // temporarily change the layer from Outline
             // to Default if the object is selected
@@ -133,10 +138,13 @@ public class UIManager : MonoBehaviour
         // we want to hide the viewer and enable the free camera controller
         if (SDCNViewer.Active) {
             // Show hide viewer panel
-            HideViewerPanel.SetActive(true);
+            ViewerPanel.SetActive(true);
 
             // Hide the render panel
             RenderPanel.SetActive(false);
+
+            // Set the viewer opacity
+            SDCNViewer.Instance.Opacity = ViewerTransparencySlider.value;
 
             if (Input.GetKeyDown(KeyCode.Escape)) {
                 // Hide the SDCNViewer
@@ -146,7 +154,7 @@ public class UIManager : MonoBehaviour
                 FreeCameraController.enabled = true;
 
                 // Hide the hide viewer panel
-                HideViewerPanel.SetActive(false);
+                ViewerPanel.SetActive(false);
 
                 // Show the render
                 RenderPanel.SetActive(true);
