@@ -22,6 +22,8 @@ public class UIManager : MonoBehaviour
     [Space]
     public GameObject RenderPanel;
     [Space]
+    public GameObject SpawnerPanel;
+    [Space]
     public GameObject SelectedPanel;
     public Image SelectedPromptHighlightedImage;
     public Image SelectedPositionHighlightedImage;
@@ -137,11 +139,14 @@ public class UIManager : MonoBehaviour
         // If the user pressed the escape button while the SDCNViewer is active,
         // we want to hide the viewer and enable the free camera controller
         if (SDCNViewer.Active) {
-            // Show hide viewer panel
+            // Show viewer panel
             ViewerPanel.SetActive(true);
 
             // Hide the render panel
             RenderPanel.SetActive(false);
+
+            // Hide the spawner panel
+            SpawnerPanel.SetActive(false);
 
             // Set the viewer opacity
             SDCNViewer.Instance.Opacity = ViewerTransparencySlider.value;
@@ -153,11 +158,14 @@ public class UIManager : MonoBehaviour
                 // Enable the free camera controller
                 FreeCameraController.enabled = true;
 
-                // Hide the hide viewer panel
+                // Hide the viewer panel
                 ViewerPanel.SetActive(false);
 
-                // Show the render
+                // Show the render panel
                 RenderPanel.SetActive(true);
+
+                // Show the spawner panel
+                SpawnerPanel.SetActive(true);
             }
         }
     }
@@ -171,5 +179,54 @@ public class UIManager : MonoBehaviour
             // Stop editing prompt
             UIEditableSDCNObject.Selected.EditingPrompt = false;
         }
+    }
+
+    public void SpawnCube() {
+        SpawnObject(PrimitiveType.Cube);
+    }
+
+    public void SpawnSphere() {
+        SpawnObject(PrimitiveType.Sphere);
+    }
+
+    public void SpawnCapsule() {
+        SpawnObject(PrimitiveType.Capsule);
+    }
+
+    public void SpawnCylinder() {
+        SpawnObject(PrimitiveType.Cylinder);
+    }
+
+    public void SpawnPlane() {
+        SpawnObject(PrimitiveType.Plane);
+    }
+
+    public void SpawnQuad() {
+        SpawnObject(PrimitiveType.Quad);
+    }
+
+    private void SpawnObject(PrimitiveType primitiveType) {
+        // Check if the SDCNViewer is active, or we
+        // are rendering, we should not be able to
+        // interact with the scene
+        if (SDCNViewer.Active
+        ||  SDCNManager.Rendering)
+            return;
+
+        // Spawn a new object
+        GameObject obj = GameObject.CreatePrimitive(primitiveType);
+        obj.transform.position = FreeCameraController.transform.position + FreeCameraController.transform.forward * 5f;
+        obj.transform.rotation = Quaternion.identity;
+        obj.transform.localScale = Vector3.one;
+
+        // Add the UIEditableSDCNObject component
+        UIEditableSDCNObject editableObj = obj.AddComponent<UIEditableSDCNObject>();
+
+        // Wait for one frame, then select the object
+        IEnumerator selectObject() {
+            yield return null;
+            editableObj.Select();
+        }
+        StartCoroutine(selectObject());
     }
 }

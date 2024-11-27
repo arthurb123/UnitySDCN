@@ -50,12 +50,6 @@ public class UIEditableSDCNObject : MonoBehaviour
                 Select();
             }
         }
-        
-        // Check if ESC key was pressed
-        if (Input.GetKeyDown(KeyCode.Escape)) {
-            // Attempt to deselect this object
-            Deselect();
-        }
 
         // Check if this object is selected
         if (Selected == this) {
@@ -69,6 +63,13 @@ public class UIEditableSDCNObject : MonoBehaviour
                     _gizmoController.SetHandleMode(HandleType.ROTATION);
                 else if (Input.GetKeyDown(KeyCode.F))
                     _gizmoController.SetHandleMode(HandleType.SCALE);
+                else if (Input.GetKeyDown(KeyCode.Escape))
+                    Deselect();
+                else if (Input.GetKeyDown(KeyCode.X)) {
+                    Deselect();
+                    Destroy(gameObject);
+                    return;
+                }
             }
         }
 
