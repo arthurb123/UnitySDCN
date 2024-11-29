@@ -89,7 +89,7 @@ export default class ComfyUI {
                         guidingModelId,
                         CONTROLNET_DEPTH_IMAGE_ID,
                         comfyUIConfiguration.controlNetDepthModelName,
-                        0.45 // TODO: This might need some finetuning
+                        0.6 // TODO: This might need some finetuning
                     );
         
                     partialControlNetWorkflow += partialWorkflow;
@@ -120,7 +120,7 @@ export default class ComfyUI {
                         guidingModelId,
                         CONTROLNET_NORMAL_IMAGE_ID,
                         comfyUIConfiguration.controlNetNormalModelName,
-                        0.45 // TODO: This might need some finetuning
+                        0.6 // TODO: This might need some finetuning
                     );
         
                     partialControlNetWorkflow += partialWorkflow;
@@ -161,6 +161,7 @@ export default class ComfyUI {
                 nodeCounter,
                 segment.maskImageBase64,
                 segment.description,
+                segment.strength,
                 MODEL_ID,
                 NEGATIVE_CONDITIONING_ID,
                 CONTROLNET_DEPTH_MODEL_ID,
@@ -335,7 +336,8 @@ export default class ComfyUI {
     private static createWorkflowRegionInput(
         nodeId: number,
         maskBase64: string, 
-        prompt: string, 
+        prompt: string,
+        strength: number,
         modelId: number,
         negativeConditioningId: number,
         controlNetDepthModelId: number,
@@ -404,7 +406,8 @@ export default class ComfyUI {
                                 ? ''
                                 : `"${regionId}", 0`
                             }
-                        ]
+                        ],
+                        "strength": ${strength}
                     },
                     "class_type": "ETN_DefineRegion",
                     "_meta": {

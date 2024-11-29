@@ -32,6 +32,8 @@ public class UIManager : MonoBehaviour
     [Space]
     public GameObject PromptPanel;
     public TMP_InputField PromptTextField;
+    public Slider PromptStrengthSlider;
+    public TMP_Text PromptStrengthText;
 
     void Update() {
         // If the gizmo controller is available and active,
@@ -62,6 +64,19 @@ public class UIManager : MonoBehaviour
 
                 // Disable the free camera controller
                 FreeCameraController.enabled = false;
+
+                // Setup the slider
+                PromptStrengthSlider.maxValue = 4f;
+                PromptStrengthSlider.minValue = 0f;
+                PromptStrengthSlider.value = UIEditableSDCNObject.Selected.SDCNObject.Strength;
+                void setStrength(float value) {
+                    UIEditableSDCNObject.Selected.SDCNObject.Strength = value;
+                    PromptStrengthText.text = $"Strength: {value}";
+                }
+
+                PromptStrengthSlider.onValueChanged.RemoveAllListeners();
+                PromptStrengthSlider.onValueChanged.AddListener(setStrength);
+                setStrength(UIEditableSDCNObject.Selected.SDCNObject.Strength);
             }
 
             // Otherwise, check the gizmo controller mode
@@ -179,6 +194,12 @@ public class UIManager : MonoBehaviour
             // Stop editing prompt
             UIEditableSDCNObject.Selected.EditingPrompt = false;
         }
+    }
+
+    public void ResetPromptStrength() {
+        // Reset the prompt strength to 1.0
+        if (UIEditableSDCNObject.Selected != null)
+            PromptStrengthSlider.value = 1f;
     }
 
     public void SpawnCube() {

@@ -33,16 +33,17 @@ namespace UnitySDCN
             // Convert the segments to a JSON string
             // in the form of a list where;
             // [
-            //    { maskImageBase64: string, description: string },
+            //    { maskImageBase64: string, description: string, strength: float },
             //    ...
             // ]
             StringBuilder segmentsDictJson = new();
             segmentsDictJson.Append("[");
             foreach (SDCNSegment segment in segments)
             {
-                string key = $"\"{segment.MaskImageBase64}\"";
-                string value = $"\"{segment.GetDescription()}\"";
-                segmentsDictJson.Append($"{{ \"maskImageBase64\": {key}, \"description\": {value} }},");
+                string maskImageBase64 = $"\"{segment.MaskImageBase64}\"";
+                string description = $"\"{segment.GetDescription()}\"";
+                string strength = segment.Strength.ToString();
+                segmentsDictJson.Append($"{{ \"maskImageBase64\": {maskImageBase64}, \"description\": {description}, \"strength\": {strength} }},");
             }
 
             // Remove the last comma

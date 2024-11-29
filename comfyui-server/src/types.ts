@@ -1,6 +1,7 @@
 export type Segment = {
     maskImageBase64: string,
-    description: string
+    description: string,
+    strength: number
 };
 
 export type ComfyUIConfiguration = {

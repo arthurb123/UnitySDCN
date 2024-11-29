@@ -9,6 +9,8 @@ namespace UnitySDCN {
         [Header("Settings")]
         [TextArea(3, 10)]
         public string Description = string.Empty;
+        [Range(0f, 4f)]
+        public float Strength = 1f;
 
         public Bounds? GetBounds() {
             // Get the mesh filter component
