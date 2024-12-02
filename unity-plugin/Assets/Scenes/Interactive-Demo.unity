@@ -4805,6 +4805,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _camera: {fileID: 330585548}
   _webServerAddress: http://127.0.0.1:9295
+  _randomSeed: 1
+  _seed: 0
   _logVerbosity: 1
 --- !u!1 &1091781256
 GameObject:
@@ -6908,7 +6910,7 @@ GameObject:
   - component: {fileID: 1515345821}
   - component: {fileID: 1515345820}
   m_Layer: 0
-  m_Name: Vegetation
+  m_Name: Roof
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6953,7 +6955,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2ebbad60efc127741baa621dcf29d43d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Description: overgrown vegetation hanging from the roof
+  Description: roof made from rusty metal plates
   Strength: 1
 --- !u!23 &1515345822
 MeshRenderer:

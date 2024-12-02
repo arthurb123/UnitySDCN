@@ -65,6 +65,8 @@ namespace UnitySDCN
             jsonBodyBuilder.AppendLine("{");
             jsonBodyBuilder.AppendLine($"\"width\": {width},");
             jsonBodyBuilder.AppendLine($"\"height\": {height},");
+            if (seed != null)
+                jsonBodyBuilder.AppendLine($"\"seed\": {seed.Value},");
             jsonBodyBuilder.AppendLine($"\"segments\": {segmentsDictJson},");
             if (depthImage != null)
                 jsonBodyBuilder.AppendLine($"\"depthImage\": \"{System.Convert.ToBase64String(depthImage)}\",");
@@ -72,8 +74,6 @@ namespace UnitySDCN
                 jsonBodyBuilder.AppendLine($"\"normalImage\": \"{System.Convert.ToBase64String(normalImage)}\",");
             jsonBodyBuilder.AppendLine($"\"backgroundPrompt\": \"{backgroundDescription}\",");
             jsonBodyBuilder.AppendLine($"\"negativePrompt\": \"{negativeDescription}\"");
-            if (seed != null)
-                jsonBodyBuilder.AppendLine($"\"seed\": {seed}");
             jsonBodyBuilder.AppendLine("}");
             string jsonBody = jsonBodyBuilder.ToString();
 
