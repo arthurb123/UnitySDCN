@@ -31,7 +31,7 @@ namespace UnitySDCN {
                 _overlayMaterial.color = new Color(1, 1, 1, _overlayOpacity);
         }
 
-        internal void ShowTexture(Texture2D overlayTexture, LayerMask excludeLayers)
+        internal void ShowTexture(Texture2D overlayTexture)
         {
             // Step 0: Check if we are already showing a texture
             //         camera, if so, switch back to the main camera
@@ -64,9 +64,6 @@ namespace UnitySDCN {
 
             // Disable the new camera by default, we'll switch to it later
             _textureCamera.enabled = false;
-
-            // Step 3: Exclude specific layers from the texture camera rendering
-            _textureCamera.cullingMask = ~excludeLayers;
 
             // Step 4: Create a full-screen quad to show the Texture2D
             CreateFullscreenQuad();

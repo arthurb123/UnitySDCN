@@ -13,11 +13,9 @@ namespace UnitySDCN
     {
         public string BackgroundDescription => _backgroundDescription;
         public string NegativeDescription => _negativeDescription;
-        public LayerMask ExcludeLayers => _excludeLayers;
         public SDCNCameraMode Mode => _mode;
 
         [Header("Settings")]
-        [SerializeField] private LayerMask _excludeLayers = 0;
         [SerializeField] private SDCNCameraMode _mode = 
             SDCNCameraMode.Segmented 
         |   SDCNCameraMode.Depth 

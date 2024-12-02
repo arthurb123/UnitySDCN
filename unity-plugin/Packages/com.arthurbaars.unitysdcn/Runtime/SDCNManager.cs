@@ -146,7 +146,7 @@ namespace UnitySDCN {
                     _viewer.SwitchBackToMainCamera();
 
                 // View texture
-                _viewer.ShowTexture(texture, _camera.ExcludeLayers);
+                _viewer.ShowTexture(texture);
 
                 // Log
                 SDCNLogger.Log(

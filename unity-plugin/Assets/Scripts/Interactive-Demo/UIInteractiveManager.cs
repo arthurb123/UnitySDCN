@@ -7,7 +7,7 @@ using TMPro;
 using UnityEngine.Rendering;
 using UnitySDCN;
 
-public class UIManager : MonoBehaviour
+public class UIInteractiveManager : MonoBehaviour
 {
     [Header("Scene")]
     public SDCNManager SDCNManager;
