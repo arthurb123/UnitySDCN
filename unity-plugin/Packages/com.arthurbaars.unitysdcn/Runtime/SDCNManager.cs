@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections;
+using System.Threading.Tasks;
+using UnityEditor;
 using UnityEngine;
 
 namespace UnitySDCN {
@@ -19,6 +21,11 @@ namespace UnitySDCN {
 
         [Header("Settings")]
         [SerializeField] private string _webServerAddress = "http://127.0.0.1:9295";
+        [Space]
+        [SerializeField] private bool _randomSeed = true;
+        [Tooltip("Only gets used if Random Seed is turned off.")]
+        [SerializeField] private int _seed = 0;
+        [Space]
         [SerializeField] private SDCNVerbosity _logVerbosity = SDCNVerbosity.Minimal;
 
         private SDCNViewer? _viewer;
@@ -43,14 +50,18 @@ namespace UnitySDCN {
                 _viewer.Update();
         }
 
-        public void RenderImage() {
+        /**
+         * Render an image using the SDCN backend.
+         * @return A task which will return the generated image.
+         */
+        public async Task<Texture2D?> RenderImage() {
             // Check if in play mode
             if (!Application.isPlaying) {
                 SDCNLogger.Warning(
                     typeof(SDCNManager), 
                     "Could not render image, not in play mode"
                 );
-                return;
+                return null;
             }
 
             // Check if we are already rendering
@@ -59,7 +70,7 @@ namespace UnitySDCN {
                     typeof(SDCNManager), 
                     "Could not render image, already rendering"
                 );
-                return;
+                return null;
             }
 
             // Check if have a valid camera
@@ -68,9 +79,77 @@ namespace UnitySDCN {
                     typeof(SDCNManager), 
                     "Could not render image, no camera found in SDCNManager"
                 );
-                return;
+                return null;
+            }
+            
+            // Set rendering
+            Rendering = true;
+
+            // Capture camera data
+            SDCNCameraCapture? cameraCapture = _camera.Capture();
+            if (cameraCapture == null) {
+                SDCNLogger.Error(
+                    typeof(SDCNManager), 
+                    "Could not render image, failed to capture camera data"
+                );
+                return null;
             }
 
+            // Log
+            SDCNLogger.Log(
+                typeof(SDCNManager), 
+                "Successfully captured camera data",
+                SDCNVerbosity.Minimal
+            );
+
+            // DEBUG: Save depth image to png file
+            // if (cameraCapture.DepthImage != null)
+            //     System.IO.File.WriteAllBytes("Assets/depth_image.png", cameraCapture.DepthImage);
+
+            // DEBUG: Save normal image to png file
+            // if (cameraCapture.NormalImage != null)
+            //     System.IO.File.WriteAllBytes("Assets/normal_image.png", cameraCapture.NormalImage);
+
+            // DEBUG: Save segmented image to png file
+            // for (int i = 0; i < cameraCapture.Segments.Length; i++) {
+            //     string path = "Assets/segmented_image_" + i + ".png";
+            //     System.IO.File.WriteAllBytes(path, cameraCapture.Segments[i].MaskImage);
+            // }
+
+            // Generate image through web client using
+            // the captured camera data
+            Texture2D? texture = await SDCNWebClient.GenerateImage(
+                serverAddress: _webServerAddress,
+                width: cameraCapture.Width,
+                height: cameraCapture.Height,
+                segments: cameraCapture.Segments,
+                depthImage: cameraCapture.DepthImage,
+                normalImage: cameraCapture.NormalImage,
+                backgroundDescription: _camera.BackgroundDescription,
+                negativeDescription: _camera.NegativeDescription,
+                seed: _randomSeed ? null : _seed
+            );
+
+            // Check if texture is valid
+            if (texture == null) {
+                SDCNLogger.Error(
+                    typeof(SDCNManager), 
+                    "Received invalid texture from server"
+                );
+                return null;
+            }
+
+            // Reset rendering
+            Rendering = false;
+
+            // Return texture
+            return texture;
+        }
+
+        /**
+         * Render an image using the SDCN backend, and view it using a viewer.
+         */
+        public void RenderAndViewImage() {
             // Check if viewer is active, if so we need to switch back 
             // to the main camera
             IEnumerator hideViewer(Action callback) {
@@ -83,61 +162,10 @@ namespace UnitySDCN {
                 callback();
             }
             StartCoroutine(hideViewer(async () => {
-                // Set rendering
-                Rendering = true;
-
-                // Capture camera data
-                SDCNCameraCapture? cameraCapture = _camera.Capture();
-                if (cameraCapture == null) {
-                    SDCNLogger.Error(
-                        typeof(SDCNManager), 
-                        "Could not render image, failed to capture camera data"
-                    );
+                // Render image
+                Texture2D? texture = await RenderImage();
+                if (texture == null)
                     return;
-                }
-
-                // Log
-                SDCNLogger.Log(
-                    typeof(SDCNManager), 
-                    "Successfully captured camera data",
-                    SDCNVerbosity.Minimal
-                );
-
-                // DEBUG: Save depth image to png file
-                // if (cameraCapture.DepthImage != null)
-                //     System.IO.File.WriteAllBytes("Assets/depth_image.png", cameraCapture.DepthImage);
-
-                // DEBUG: Save normal image to png file
-                // if (cameraCapture.NormalImage != null)
-                //     System.IO.File.WriteAllBytes("Assets/normal_image.png", cameraCapture.NormalImage);
-
-                // DEBUG: Save segmented image to png file
-                // for (int i = 0; i < cameraCapture.Segments.Length; i++) {
-                //     string path = "Assets/segmented_image_" + i + ".png";
-                //     System.IO.File.WriteAllBytes(path, cameraCapture.Segments[i].MaskImage);
-                // }
-
-                // Generate image through web client using
-                // the captured camera data
-                Texture2D? texture = await SDCNWebClient.GenerateImage(
-                    serverAddress: _webServerAddress,
-                    width: cameraCapture.Width,
-                    height: cameraCapture.Height,
-                    segments: cameraCapture.Segments,
-                    depthImage: cameraCapture.DepthImage,
-                    normalImage: cameraCapture.NormalImage,
-                    backgroundDescription: _camera.BackgroundDescription,
-                    negativeDescription: _camera.NegativeDescription
-                );
-
-                // Check if texture is valid
-                if (texture == null) {
-                    SDCNLogger.Error(
-                        typeof(SDCNManager), 
-                        "Received invalid texture from server"
-                    );
-                    return;
-                }
 
                 // Check if there is currently a viewer active
                 if (_viewer == null)
@@ -151,11 +179,9 @@ namespace UnitySDCN {
                 // Log
                 SDCNLogger.Log(
                     typeof(SDCNManager), 
-                    "Successfully rendered image, created viewer to display texture"
+                    "Created viewer to display texture.",
+                    SDCNVerbosity.Minimal
                 );
-
-                // Reset rendering
-                Rendering = false;
             }));
         }
     }

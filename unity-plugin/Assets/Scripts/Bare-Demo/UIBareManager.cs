@@ -61,7 +61,7 @@ public class UIBareManager : MonoBehaviour
             PromptPanel.SetActive(false);
 
             // Issue a render call to the SDCNManager
-            SDCNManager.RenderImage();
+            SDCNManager.RenderAndViewImage();
         }
     }
 }

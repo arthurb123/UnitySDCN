@@ -13,7 +13,7 @@ namespace UnitySDCN {
             // Add a button to the inspector
             if (GUILayout.Button("Render Image")) {
                 SDCNManager SDCNManager = (SDCNManager)target;
-                SDCNManager.RenderImage();
+                SDCNManager.RenderAndViewImage();
             }
         }
     }

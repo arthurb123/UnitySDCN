@@ -4,10 +4,12 @@
     "checkpointModelName": "juggernautXL_juggXIByRundiffusion.safetensors",
 
     "useControlNet": true,
-    "controlNetDepthModelName": "controlnet-depth-sdxl-1.0.fp16.safetensors",
+    "controlNetDepthModelName": "xinsir-controlnet-depth-sdxl-1.0.safetensors",
     "controlNetDepthMode": "normal",
-    "controlNetNormalModelName": "NormalmapbaeControlnet_v10.safetensors",
-    "controlNetNormalMode": "lllite",
+    "controlNetDepthStrength": 1.0,
+    "controlNetNormalModelName": "noob-sdxl-controlnet-normal.safetensors",
+    "controlNetNormalMode": "normal",
+    "controlNetNormalStrength": 1.0,
 
     "steps": 25,
     "cfg": 6,

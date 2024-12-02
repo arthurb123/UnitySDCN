@@ -28,7 +28,8 @@ namespace UnitySDCN
             string backgroundDescription,
             string negativeDescription,
             byte[]? depthImage = null,
-            byte[]? normalImage = null
+            byte[]? normalImage = null,
+            int? seed = null
         ) {
             // Convert the segments to a JSON string
             // in the form of a list where;
@@ -71,6 +72,8 @@ namespace UnitySDCN
                 jsonBodyBuilder.AppendLine($"\"normalImage\": \"{System.Convert.ToBase64String(normalImage)}\",");
             jsonBodyBuilder.AppendLine($"\"backgroundPrompt\": \"{backgroundDescription}\",");
             jsonBodyBuilder.AppendLine($"\"negativePrompt\": \"{negativeDescription}\"");
+            if (seed != null)
+                jsonBodyBuilder.AppendLine($"\"seed\": {seed}");
             jsonBodyBuilder.AppendLine("}");
             string jsonBody = jsonBodyBuilder.ToString();
 

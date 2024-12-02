@@ -17,13 +17,13 @@ Unity URP demo scene       |  Post visualization
 5. Modify the scene and use the `SDCNManager` game object to generate images.
 
 ## Models
+<ins>ControlNet SDXL</ins>
+* Depth: https://huggingface.co/xinsir/controlnet-depth-sdxl-1.0
+* Normal: https://huggingface.co/Eugeoter/noob-sdxl-controlnet-normal
+
 <ins>ControlNet SD1.5</ins>
 * Depth: https://huggingface.co/lllyasviel/sd-controlnet-depth
 * Normal: https://huggingface.co/lllyasviel/sd-controlnet-normal
-
-<ins>ControlNet SDXL</ins>
-* Depth: https://huggingface.co/diffusers/controlnet-depth-sdxl-1.0
-* Normal: https://huggingface.co/bdsqlsz/qinglong_controlnet-lllite
 
 ## Roadmap
 * Add region ordering based on camera-object distance metric

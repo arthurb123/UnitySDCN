@@ -28,7 +28,7 @@ namespace UnitySDCN {
         public string? GetDescription()
         {
             return SDCNObject != null 
-                ? $"{SDCNObject.Description}"
+                ? $"{SDCNObject.GetSanitizedDescription()}"
                 : null;
         }
     }

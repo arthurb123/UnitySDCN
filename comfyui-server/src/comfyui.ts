@@ -89,7 +89,7 @@ export default class ComfyUI {
                         guidingModelId,
                         CONTROLNET_DEPTH_IMAGE_ID,
                         comfyUIConfiguration.controlNetDepthModelName,
-                        0.6 // TODO: This might need some finetuning
+                        comfyUIConfiguration.controlNetDepthStrength
                     );
         
                     partialControlNetWorkflow += partialWorkflow;
@@ -120,7 +120,7 @@ export default class ComfyUI {
                         guidingModelId,
                         CONTROLNET_NORMAL_IMAGE_ID,
                         comfyUIConfiguration.controlNetNormalModelName,
-                        0.6 // TODO: This might need some finetuning
+                        comfyUIConfiguration.controlNetNormalStrength
                     );
         
                     partialControlNetWorkflow += partialWorkflow;
@@ -142,8 +142,10 @@ export default class ComfyUI {
             NEGATIVE_CONDITIONING_ID,
             CONTROLNET_DEPTH_MODEL_ID,
             CONTROLNET_DEPTH_IMAGE_ID,
+            comfyUIConfiguration.controlNetDepthStrength,
             CONTROLNET_NORMAL_MODEL_ID,
-            CONTROLNET_NORMAL_IMAGE_ID
+            CONTROLNET_NORMAL_IMAGE_ID,
+            comfyUIConfiguration.controlNetNormalStrength
         );
         nodeCounter = nodeId + 1;
     
@@ -166,8 +168,10 @@ export default class ComfyUI {
                 NEGATIVE_CONDITIONING_ID,
                 CONTROLNET_DEPTH_MODEL_ID,
                 CONTROLNET_DEPTH_IMAGE_ID,
+                comfyUIConfiguration.controlNetDepthStrength,
                 CONTROLNET_NORMAL_MODEL_ID,
                 CONTROLNET_NORMAL_IMAGE_ID,
+                comfyUIConfiguration.controlNetNormalStrength,
                 currentRegionId
             );
     
@@ -342,8 +346,10 @@ export default class ComfyUI {
         negativeConditioningId: number,
         controlNetDepthModelId: number,
         controlNetDepthImageId: number,
+        controlNetDepthStrength: number,
         controlNetNormalModelId: number,
         controlNetNormalImageId: number,
+        controlNetNormalStrength: number,
         regionId?: number
     ): { partialWorkflow: string, regionId: number, nodeId: number } {
         const loadMaskId = nodeId++;
@@ -355,7 +361,8 @@ export default class ComfyUI {
             conditioningId,
             negativeConditioningId,
             controlNetDepthImageId,
-            controlNetDepthModelId
+            controlNetDepthModelId,
+            controlNetDepthStrength
         );
         const pipedControlNetNormal = ComfyUI.pipeConditioningThroughControlNet(
             pipedControlNetDepth.nodeId + 1,
@@ -363,7 +370,8 @@ export default class ComfyUI {
             pipedControlNetDepth.conditioningId,
             negativeConditioningId,
             controlNetNormalImageId,
-            controlNetNormalModelId
+            controlNetNormalModelId,
+            controlNetNormalStrength
         );
         return {
             partialWorkflow: `
@@ -427,8 +435,10 @@ export default class ComfyUI {
         negativeConditioningId: number,
         controlNetDepthModelId: number,
         controlNetDepthImageId: number,
+        controlNetDepthStrength: number,
         controlNetNormalModelId: number,
-        controlNetNormalImageId: number
+        controlNetNormalImageId: number,
+        controlNetNormalStrength: number
     ): { 
         backgroundRegionPartialWorkflow: string, 
         backgroundRegionConditioningId: number, 
@@ -443,7 +453,8 @@ export default class ComfyUI {
             conditioningId,
             negativeConditioningId,
             controlNetDepthImageId,
-            controlNetDepthModelId
+            controlNetDepthModelId,
+            controlNetDepthStrength
         );
         const pipedControlNetNormal = ComfyUI.pipeConditioningThroughControlNet(
             pipedControlNetDepth.nodeId + 1,
@@ -451,7 +462,8 @@ export default class ComfyUI {
             pipedControlNetDepth.conditioningId,
             negativeConditioningId,
             controlNetNormalImageId,
-            controlNetNormalModelId
+            controlNetNormalModelId,
+            controlNetNormalStrength
         );
         return {
             backgroundRegionPartialWorkflow: `

@@ -145,6 +145,16 @@ namespace UnitySDCN
                 depthTexture.ReadPixels(new Rect(0, 0, captureResolution.x, captureResolution.y), 0, 0);
                 depthTexture.Apply();
 
+                // Normalize the depth texture
+                Color[] pixels = depthTexture.GetPixels();
+                float maxDepth = 0.0f;
+                foreach (Color pixel in pixels)
+                    maxDepth = Mathf.Max(maxDepth, pixel.r);
+                for (int i = 0; i < pixels.Length; i++)
+                    pixels[i] = new Color(pixels[i].r / maxDepth, pixels[i].r / maxDepth, pixels[i].r / maxDepth);
+                depthTexture.SetPixels(pixels);
+                depthTexture.Apply();
+
                 byte[] bytes = depthTexture.EncodeToPNG();
                 SDCNLogger.Log(
                     typeof(SDCNManager), 
@@ -426,8 +436,7 @@ namespace UnitySDCN
                 if (unlitShader == null) {
                     SDCNLogger.Error(
                         typeof(SDCNManager), 
-                        "Shader 'Universal Render Pipeline/Unlit' not found!", 
-                        SDCNVerbosity.Minimal
+                        "Shader 'Universal Render Pipeline/Unlit' not found!"
                     );
                     return null;
                 }
@@ -446,11 +455,11 @@ namespace UnitySDCN
 
                 foreach (Renderer renderer in renderers) {
                     SDCNObject? sdcnObject = renderer.GetComponent<SDCNObject>();
-                    if (sdcnObject == null) continue;
+                    if (sdcnObject == null)
+                        continue;
 
-                    foreach (Renderer r in renderers) {
+                    foreach (Renderer r in renderers)
                         r.material = blackMaterial;
-                    }
                     renderer.material = whiteMaterial;
 
                     _camera.targetTexture = maskTexture;
@@ -469,17 +478,20 @@ namespace UnitySDCN
                 }
 
                 // We want to sort segments on their SDCNObject
-                // bounding boxes, so we can make use of region
-                // ordering
+                // bounding boxes such that closer objects are
+                // rendered first
                 Vector3 cameraPosition = _camera.transform.position;
                 segments.Sort((a, b) => {
                     Bounds? boundsA = a.SDCNObject.GetBounds();
                     Bounds? boundsB = b.SDCNObject.GetBounds();
                     if (boundsA == null || boundsB == null) 
                         return 0;
-                    Vector3 closestA = boundsA.Value.ClosestPoint(cameraPosition);
-                    Vector3 closestB = boundsB.Value.ClosestPoint(cameraPosition);
-                    return (int)(Vector3.Distance(closestA, cameraPosition) - Vector3.Distance(closestB, cameraPosition));
+
+                    float closestPointA = boundsA.Value.ClosestPoint(cameraPosition).sqrMagnitude;
+                    float closestPointB = boundsB.Value.ClosestPoint(cameraPosition).sqrMagnitude;
+                    float distanceA = (boundsA.Value.center - cameraPosition).sqrMagnitude + closestPointA;
+                    float distanceB = (boundsB.Value.center - cameraPosition).sqrMagnitude + closestPointB;
+                    return distanceA.CompareTo(distanceB);
                 });
 
                 return segments.ToArray();

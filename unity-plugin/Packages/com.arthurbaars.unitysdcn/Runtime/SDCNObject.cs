@@ -12,6 +12,10 @@ namespace UnitySDCN {
         [Range(0f, 4f)]
         public float Strength = 1f;
 
+        public string GetSanitizedDescription() {
+            return Description.Replace("\n", " ").Replace("\r", " ");
+        }
+
         public Bounds? GetBounds() {
             // Get the mesh filter component
             MeshFilter meshFilter = GetComponent<MeshFilter>();

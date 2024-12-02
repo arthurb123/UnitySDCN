@@ -7,11 +7,15 @@ export type Segment = {
 export type ComfyUIConfiguration = {
     address: string,
     checkpointModelName: string,
+
     useControlNet: boolean,
     controlNetDepthModelName: string,
     controlNetDepthMode: ControlNetModelType,
+    controlNetDepthStrength: number,
     controlNetNormalModelName: string,
     controlNetNormalMode: ControlNetModelType,
+    controlNetNormalStrength: number,
+    
     steps: number,
     cfg: number,
     sampler: string,

@@ -13,6 +13,7 @@ public class UIInteractiveManager : MonoBehaviour
     public SDCNManager SDCNManager;
     public FreeCamera FreeCameraController;
     public RuntimeTransformHandle GizmoController;
+    public Transform ObjectContainer;
 
     [Header("Components")]
     public GameObject RenderOverlayPanel;
@@ -135,7 +136,7 @@ public class UIInteractiveManager : MonoBehaviour
             }
 
             // Issue a render call to the SDCNManager
-            SDCNManager.RenderImage();
+            SDCNManager.RenderAndViewImage();
 
             // Change the layer back to Outline
             if (outlineObject != null)
@@ -239,6 +240,7 @@ public class UIInteractiveManager : MonoBehaviour
         obj.transform.position = FreeCameraController.transform.position + FreeCameraController.transform.forward * 5f;
         obj.transform.rotation = Quaternion.identity;
         obj.transform.localScale = Vector3.one;
+        obj.transform.SetParent(ObjectContainer);
 
         // Add the UIEditableSDCNObject component
         UIEditableSDCNObject editableObj = obj.AddComponent<UIEditableSDCNObject>();
