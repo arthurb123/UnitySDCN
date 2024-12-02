@@ -26,5 +26,4 @@ Unity URP demo scene       |  Post visualization
 * Normal: https://huggingface.co/lllyasviel/sd-controlnet-normal
 
 ## Roadmap
-* Add region ordering based on camera-object distance metric
-* If a ComfyUI plugin ever arrives, implement Flux.1 support using: https://github.com/instantX-research/Regional-Prompting-FLUX
+* If a ComfyUI plugin ever arrives, maybe implement Flux.1 support using: https://github.com/instantX-research/Regional-Prompting-FLUX

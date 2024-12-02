@@ -67,7 +67,7 @@ public class UIInteractiveManager : MonoBehaviour
                 FreeCameraController.enabled = false;
 
                 // Setup the slider
-                PromptStrengthSlider.maxValue = 4f;
+                PromptStrengthSlider.maxValue = 10f;
                 PromptStrengthSlider.minValue = 0f;
                 PromptStrengthSlider.value = UIEditableSDCNObject.Selected.SDCNObject.Strength;
                 void setStrength(float value) {

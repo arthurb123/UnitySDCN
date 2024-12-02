@@ -487,10 +487,8 @@ namespace UnitySDCN
                     if (boundsA == null || boundsB == null) 
                         return 0;
 
-                    float closestPointA = boundsA.Value.ClosestPoint(cameraPosition).sqrMagnitude;
-                    float closestPointB = boundsB.Value.ClosestPoint(cameraPosition).sqrMagnitude;
-                    float distanceA = (boundsA.Value.center - cameraPosition).sqrMagnitude + closestPointA;
-                    float distanceB = (boundsB.Value.center - cameraPosition).sqrMagnitude + closestPointB;
+                    float distanceA = Vector3.Distance(cameraPosition, boundsA.Value.center);
+                    float distanceB = Vector3.Distance(cameraPosition, boundsB.Value.center);
                     return distanceA.CompareTo(distanceB);
                 });
 
