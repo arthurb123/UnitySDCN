@@ -36,7 +36,7 @@ public class UIInteractiveManager : MonoBehaviour
     public GameObject PromptPanel;
     public TMP_InputField PromptTextField;
     public Slider PromptStrengthSlider;
-    public TMP_Text PromptStrengthText;
+    public TMP_InputField PromptStrengthInput;
 
     public void SpawnCube() {
         SpawnObject(PrimitiveType.Cube);
@@ -160,6 +160,17 @@ public class UIInteractiveManager : MonoBehaviour
         SpawnerPanel.SetActive(true);
     }
 
+    public void UpdatePromptStrength() {
+        if (UIEditableSDCNObject.Selected != null) {
+            UIEditableSDCNObject.Selected.SDCNObject.Strength = 
+                PromptStrengthInput.text == "" 
+                    ? 0f 
+                    : float.Parse(PromptStrengthInput.text);
+            
+            PromptStrengthSlider.value = UIEditableSDCNObject.Selected.SDCNObject.Strength;
+        }
+    }
+
     private void Start() {
         if (Instance == null)
             Instance = this;
@@ -203,7 +214,8 @@ public class UIInteractiveManager : MonoBehaviour
                 PromptStrengthSlider.value = UIEditableSDCNObject.Selected.SDCNObject.Strength;
                 void setStrength(float value) {
                     UIEditableSDCNObject.Selected.SDCNObject.Strength = value;
-                    PromptStrengthText.text = $"(Strength: {value.ToString("0.00")})";
+                    if (!PromptStrengthInput.isFocused)
+                        PromptStrengthInput.text = $"{value.ToString("0.00")}";
                 }
 
                 PromptStrengthSlider.onValueChanged.RemoveAllListeners();
