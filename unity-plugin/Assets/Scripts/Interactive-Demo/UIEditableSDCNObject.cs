@@ -6,7 +6,7 @@ using RuntimeHandle;
 [RequireComponent(typeof(SDCNObject))]
 public class UIEditableSDCNObject : MonoBehaviour
 {
-    public static UIEditableSDCNObject Selected { get; private set; }
+    public static UIEditableSDCNObject Selected { get; private set; } = null;
     
     public bool EditingPrompt { get; set; }
     public SDCNObject SDCNObject { get; private set; }
@@ -74,7 +74,7 @@ public class UIEditableSDCNObject : MonoBehaviour
         }
 
         // Handle outline
-        if (_isMouseOver && Selected == null)
+        if (_isMouseOver && Selected == null || Selected == this)
             transform.gameObject.layer = LayerMask.NameToLayer("Outline");
         else 
             transform.gameObject.layer = LayerMask.NameToLayer("Default");
@@ -110,10 +110,20 @@ public class UIEditableSDCNObject : MonoBehaviour
     void OnMouseOver() {
         // Set flag
         _isMouseOver = true;
+
+        // Show tooltip, but only if not editing
+        // and the object selection is valid
+        if (!EditingPrompt
+        && (Selected == null || Selected == this))
+            UITooltip.Instance.Show(gameObject, SDCNObject.Description);
     }
 
     void OnMouseExit() {
         // Reset flag
         _isMouseOver = false;
+
+        // Hide tooltip, if we are the owner
+        if (UITooltip.Instance.Owner == gameObject)
+            UITooltip.Instance.Hide();
     }
 }
