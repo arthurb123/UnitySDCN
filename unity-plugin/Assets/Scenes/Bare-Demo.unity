@@ -1555,6 +1555,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _camera: {fileID: 330585548}
   _webServerAddress: http://127.0.0.1:9295
+  _randomSeed: 1
+  _seed: 0
   _logVerbosity: 1
 --- !u!1 &1185613274
 GameObject:
@@ -2117,6 +2119,7 @@ GameObject:
   - component: {fileID: 1755415191}
   - component: {fileID: 1755415190}
   - component: {fileID: 1755415189}
+  - component: {fileID: 1755415192}
   m_Layer: 5
   m_Name: Hide Viewer
   m_TagString: Untagged
@@ -2195,6 +2198,33 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1755415187}
   m_CullTransparentMesh: 1
+--- !u!114 &1755415192
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1755415187}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd74b818201453743ac7424fbeb6c1b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  OnClick:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1185613279}
+        m_TargetAssemblyTypeName: UIBareManager, Assembly-CSharp
+        m_MethodName: HideViewer
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &1836074534
 GameObject:
   m_ObjectHideFlags: 0

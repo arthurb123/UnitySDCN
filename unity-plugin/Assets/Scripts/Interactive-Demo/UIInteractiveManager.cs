@@ -9,6 +9,8 @@ using UnitySDCN;
 
 public class UIInteractiveManager : MonoBehaviour
 {
+    public static UIInteractiveManager Instance { get; private set; } = null;
+    
     [Header("Scene")]
     public SDCNManager SDCNManager;
     public FreeCamera FreeCameraController;
@@ -36,7 +38,136 @@ public class UIInteractiveManager : MonoBehaviour
     public Slider PromptStrengthSlider;
     public TMP_Text PromptStrengthText;
 
-    void Update() {
+    public void SpawnCube() {
+        SpawnObject(PrimitiveType.Cube);
+    }
+
+    public void SpawnSphere() {
+        SpawnObject(PrimitiveType.Sphere);
+    }
+
+    public void SpawnCapsule() {
+        SpawnObject(PrimitiveType.Capsule);
+    }
+
+    public void SpawnCylinder() {
+        SpawnObject(PrimitiveType.Cylinder);
+    }
+
+    public void SpawnPlane() {
+        SpawnObject(PrimitiveType.Plane);
+    }
+
+    public void SpawnQuad() {
+        SpawnObject(PrimitiveType.Quad);
+    }
+
+    public void StartEditingPrompt() {
+        if (UIEditableSDCNObject.Selected != null) {
+            // Set editing of prompt for the selected object
+            UIEditableSDCNObject.Selected.EditingPrompt = true;
+
+            // Make sure the prompt text field is set to the object's description
+            PromptTextField.text = UIEditableSDCNObject.Selected.SDCNObject.Description;
+        }
+    }
+
+    public void StopEditingPrompt() {
+        // Stop editing prompt for selected object
+        if (UIEditableSDCNObject.Selected != null) {
+            // Set the object's description to the prompt text field
+            UIEditableSDCNObject.Selected.SDCNObject.Description = PromptTextField.text;
+
+            // Stop editing prompt
+            UIEditableSDCNObject.Selected.EditingPrompt = false;
+        }
+    }
+
+    public void ResetPromptStrength() {
+        // Reset the prompt strength to 1.0
+        if (UIEditableSDCNObject.Selected != null)
+            PromptStrengthSlider.value = 1f;
+    }
+
+    public void ChangeSelectedHandleModeTranslation() {
+        if (UIEditableSDCNObject.Selected != null)
+            GizmoController.SetHandleMode(HandleType.POSITION);
+    }
+
+    public void ChangeSelectedHandleModeRotation() {
+        if (UIEditableSDCNObject.Selected != null)
+            GizmoController.SetHandleMode(HandleType.ROTATION);
+    }
+
+    public void ChangeSelectedHandleModeScale() {
+        if (UIEditableSDCNObject.Selected != null)
+            GizmoController.SetHandleMode(HandleType.SCALE);
+    }
+
+    public void DeselectSelectedObject() {
+        if (UIEditableSDCNObject.Selected != null)
+            UIEditableSDCNObject.Selected.Deselect();
+    }
+
+    public void DeleteSelectedObject() {
+        if (UIEditableSDCNObject.Selected != null)
+            UIEditableSDCNObject.Selected.Delete();
+    }
+
+    public void RenderImage() {
+        // Disable the free camera controller
+        FreeCameraController.enabled = false;
+
+        // Enable the render overlay panel
+        RenderOverlayPanel.SetActive(true);
+
+        // Reset the viewer transparency slider in advance
+        ViewerTransparencySlider.value = 1f;
+
+        // For all SDCNObjects in the scene, we want to
+        // temporarily change the layer from Outline
+        // to Default if the object is selected
+        UIEditableSDCNObject outlineObject = null;
+        foreach (UIEditableSDCNObject obj in FindObjectsOfType<UIEditableSDCNObject>()) {
+            if (obj.gameObject.layer == LayerMask.NameToLayer("Outline")) {
+                obj.gameObject.layer = LayerMask.NameToLayer("Default");
+                outlineObject = obj;
+            }
+        }
+
+        // Issue a render call to the SDCNManager
+        SDCNManager.RenderAndViewImage();
+
+        // Change the layer back to Outline
+        if (outlineObject != null)
+            outlineObject.gameObject.layer = LayerMask.NameToLayer("Outline");
+    }
+    
+    public void HideViewer() {
+        // Hide the SDCNViewer
+        SDCNViewer.Instance.Hide();
+
+        // Enable the free camera controller
+        FreeCameraController.enabled = true;
+
+        // Hide the viewer panel
+        ViewerPanel.SetActive(false);
+
+        // Show the render panel
+        RenderPanel.SetActive(true);
+
+        // Show the spawner panel
+        SpawnerPanel.SetActive(true);
+    }
+
+    private void Start() {
+        if (Instance == null)
+            Instance = this;
+        else
+            Destroy(gameObject);
+    }
+
+    private void Update() {
         // If the gizmo controller is available and active,
         // show the selected panel and highlight the selected mode
         if (GizmoController != null 
@@ -72,7 +203,7 @@ public class UIInteractiveManager : MonoBehaviour
                 PromptStrengthSlider.value = UIEditableSDCNObject.Selected.SDCNObject.Strength;
                 void setStrength(float value) {
                     UIEditableSDCNObject.Selected.SDCNObject.Strength = value;
-                    PromptStrengthText.text = $"Strength: {value}";
+                    PromptStrengthText.text = $"(Strength: {value.ToString("0.00")})";
                 }
 
                 PromptStrengthSlider.onValueChanged.RemoveAllListeners();
@@ -114,34 +245,8 @@ public class UIInteractiveManager : MonoBehaviour
         // not already rendering we want to start rendering
         if (Input.GetKeyDown(KeyCode.Space) 
         && !RenderOverlayPanel.activeInHierarchy
-        && !SDCNViewer.Active) {
-            // Disable the free camera controller
-            FreeCameraController.enabled = false;
-
-            // Enable the render overlay panel
-            RenderOverlayPanel.SetActive(true);
-
-            // Reset the viewer transparency slider in advance
-            ViewerTransparencySlider.value = 1f;
-
-            // For all SDCNObjects in the scene, we want to
-            // temporarily change the layer from Outline
-            // to Default if the object is selected
-            UIEditableSDCNObject outlineObject = null;
-            foreach (UIEditableSDCNObject obj in FindObjectsOfType<UIEditableSDCNObject>()) {
-                if (obj.gameObject.layer == LayerMask.NameToLayer("Outline")) {
-                    obj.gameObject.layer = LayerMask.NameToLayer("Default");
-                    outlineObject = obj;
-                }
-            }
-
-            // Issue a render call to the SDCNManager
-            SDCNManager.RenderAndViewImage();
-
-            // Change the layer back to Outline
-            if (outlineObject != null)
-                outlineObject.gameObject.layer = LayerMask.NameToLayer("Outline");
-        }
+        && !SDCNViewer.Active)
+            RenderImage();
 
         // If the render overlay is active, and the SDCNManager is not
         // rendering, we want to disable the render overlay panel. We do
@@ -167,64 +272,9 @@ public class UIInteractiveManager : MonoBehaviour
             // Set the viewer opacity
             SDCNViewer.Instance.Opacity = ViewerTransparencySlider.value;
 
-            if (Input.GetKeyDown(KeyCode.Escape)) {
-                // Hide the SDCNViewer
-                SDCNViewer.Instance.Hide();
-
-                // Enable the free camera controller
-                FreeCameraController.enabled = true;
-
-                // Hide the viewer panel
-                ViewerPanel.SetActive(false);
-
-                // Show the render panel
-                RenderPanel.SetActive(true);
-
-                // Show the spawner panel
-                SpawnerPanel.SetActive(true);
-            }
+            if (Input.GetKeyDown(KeyCode.Escape))
+                HideViewer();
         }
-    }
-
-    public void StopEditingPrompt() {
-        // Stop editing prompt for selected object
-        if (UIEditableSDCNObject.Selected != null) {
-            // Set the object's description to the prompt text field
-            UIEditableSDCNObject.Selected.SDCNObject.Description = PromptTextField.text;
-
-            // Stop editing prompt
-            UIEditableSDCNObject.Selected.EditingPrompt = false;
-        }
-    }
-
-    public void ResetPromptStrength() {
-        // Reset the prompt strength to 1.0
-        if (UIEditableSDCNObject.Selected != null)
-            PromptStrengthSlider.value = 1f;
-    }
-
-    public void SpawnCube() {
-        SpawnObject(PrimitiveType.Cube);
-    }
-
-    public void SpawnSphere() {
-        SpawnObject(PrimitiveType.Sphere);
-    }
-
-    public void SpawnCapsule() {
-        SpawnObject(PrimitiveType.Capsule);
-    }
-
-    public void SpawnCylinder() {
-        SpawnObject(PrimitiveType.Cylinder);
-    }
-
-    public void SpawnPlane() {
-        SpawnObject(PrimitiveType.Plane);
-    }
-
-    public void SpawnQuad() {
-        SpawnObject(PrimitiveType.Quad);
     }
 
     private void SpawnObject(PrimitiveType primitiveType) {

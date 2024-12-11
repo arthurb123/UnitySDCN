@@ -55,19 +55,18 @@ public class UIEditableSDCNObject : MonoBehaviour
         if (Selected == this) {
             // Handle key down
             if (Input.GetKeyDown(KeyCode.E))
-                EditingPrompt = true;
+                EditPrompt();
             else if (!EditingPrompt) {
                 if (Input.GetKeyDown(KeyCode.T))
-                    _gizmoController.SetHandleMode(HandleType.POSITION);
+                    SetHandleModeTranslation();
                 else if (Input.GetKeyDown(KeyCode.R))
-                    _gizmoController.SetHandleMode(HandleType.ROTATION);
+                    SetHandleModeRotation();
                 else if (Input.GetKeyDown(KeyCode.F))
-                    _gizmoController.SetHandleMode(HandleType.SCALE);
+                    SetHandleModeScale();
                 else if (Input.GetKeyDown(KeyCode.Escape))
                     Deselect();
                 else if (Input.GetKeyDown(KeyCode.X)) {
-                    Deselect();
-                    Destroy(gameObject);
+                    Delete();
                     return;
                 }
             }
@@ -78,6 +77,33 @@ public class UIEditableSDCNObject : MonoBehaviour
             transform.gameObject.layer = LayerMask.NameToLayer("Outline");
         else 
             transform.gameObject.layer = LayerMask.NameToLayer("Default");
+    }
+
+    public void EditPrompt() {
+        if (Selected == this)
+            EditingPrompt = true;
+    }
+
+    public void SetHandleModeTranslation() {
+        if (Selected == this)
+            _gizmoController.SetHandleMode(HandleType.POSITION);
+    }
+
+    public void SetHandleModeRotation() {
+        if (Selected == this)
+            _gizmoController.SetHandleMode(HandleType.ROTATION);
+    }
+
+    public void SetHandleModeScale() {
+        if (Selected == this)
+            _gizmoController.SetHandleMode(HandleType.SCALE);
+    }
+
+    public void Delete() {
+        if (Selected == this) {
+            Deselect();
+            Destroy(gameObject);
+        }
     }
 
     public void Select() {
@@ -111,11 +137,16 @@ public class UIEditableSDCNObject : MonoBehaviour
         // Set flag
         _isMouseOver = true;
 
-        // Show tooltip, but only if not editing
-        // and the object selection is valid
+        // Show tooltip, but only if not editing,
+        // not rendering, we are not actively showing
+        // a SDCNViewer and the object selection is valid
         if (!EditingPrompt
-        && (Selected == null || Selected == this))
-            UITooltip.Instance.Show(gameObject, SDCNObject.Description);
+        &&  !SDCNManager.Instance.Rendering
+        &&  !SDCNViewer.Active
+        && (Selected == null || Selected == this)) {
+            string description = $"{SDCNObject.Description}\n\nStrength: {SDCNObject.Strength.ToString("0.00")}";
+            UITooltip.Instance.Show(gameObject, description);
+        }
     }
 
     void OnMouseExit() {
@@ -123,7 +154,9 @@ public class UIEditableSDCNObject : MonoBehaviour
         _isMouseOver = false;
 
         // Hide tooltip, if we are the owner
-        if (UITooltip.Instance.Owner == gameObject)
+        if (UITooltip.Instance.Owner == gameObject
+        ||  SDCNManager.Instance.Rendering
+        ||  SDCNViewer.Active)
             UITooltip.Instance.Hide();
     }
 }

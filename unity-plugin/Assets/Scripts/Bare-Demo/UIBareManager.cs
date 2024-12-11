@@ -21,32 +21,6 @@ public class UIBareManager : MonoBehaviour
     public GameObject PromptPanel;
     public TMP_InputField PromptTextField;
 
-    void Update() {
-        // If the user pressed the escape button while the SDCNViewer is active,
-        // we want to hide the viewer and resume the prompt UI
-        if (SDCNViewer.Active) {
-            // Hide the render overlay
-            RenderOverlayPanel.SetActive(false);
-
-            // Show viewer panel
-            ViewerPanel.SetActive(true);
-
-            // Hide the prompt panel
-            PromptPanel.SetActive(false);
-
-            if (Input.GetKeyDown(KeyCode.Escape)) {
-                // Hide the SDCNViewer
-                SDCNViewer.Instance.Hide();
-
-                // Hide the viewer panel
-                ViewerPanel.SetActive(false);
-
-                // Show the prompt panel
-                PromptPanel.SetActive(true);
-            }
-        }
-    }
-
     public void Render() {
         // Check if we are not already rendering
         if (!SDCNManager.Rendering) {
@@ -62,6 +36,35 @@ public class UIBareManager : MonoBehaviour
 
             // Issue a render call to the SDCNManager
             SDCNManager.RenderAndViewImage();
+        }
+    }
+
+    public void HideViewer() {
+        // Hide the SDCNViewer
+        SDCNViewer.Instance.Hide();
+
+        // Hide the viewer panel
+        ViewerPanel.SetActive(false);
+
+        // Show the prompt panel
+        PromptPanel.SetActive(true);
+    }
+
+    private void Update() {
+        // If the user pressed the escape button while the SDCNViewer is active,
+        // we want to hide the viewer and resume the prompt UI
+        if (SDCNViewer.Active) {
+            // Hide the render overlay
+            RenderOverlayPanel.SetActive(false);
+
+            // Show viewer panel
+            ViewerPanel.SetActive(true);
+
+            // Hide the prompt panel
+            PromptPanel.SetActive(false);
+
+            if (Input.GetKeyDown(KeyCode.Escape))
+                HideViewer();
         }
     }
 }
