@@ -144,8 +144,11 @@ public class UIEditableSDCNObject : MonoBehaviour
         &&  !SDCNManager.Instance.Rendering
         &&  !SDCNViewer.Active
         && (Selected == null || Selected == this)) {
-            string description = $"{SDCNObject.Description}\n\nStrength: {SDCNObject.Strength.ToString("0.00")}";
-            UITooltip.Instance.Show(gameObject, description);
+            string description = SDCNObject.Description;
+            if (description == null || description == string.Empty)
+                description = "(No description yet set)";
+            string fullDescription = $"{description}\n\nStrength: {SDCNObject.Strength.ToString("0.00")}";
+            UITooltip.Instance.Show(gameObject, fullDescription);
         }
     }
 

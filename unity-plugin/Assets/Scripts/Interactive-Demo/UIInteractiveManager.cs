@@ -260,6 +260,23 @@ public class UIInteractiveManager : MonoBehaviour
         && !SDCNViewer.Active)
             RenderImage();
 
+        // Check if we are not rendering and not editing the prompt
+        // if the user presses the delete button, we want to delete
+        // all objects in the scene
+        if (!SDCNManager.Rendering
+        &&  !PromptPanel.activeInHierarchy
+        &&  !SDCNViewer.Active
+        &&  Input.GetKeyDown(KeyCode.Delete)) {
+            foreach (UIEditableSDCNObject obj in FindObjectsOfType<UIEditableSDCNObject>()) {
+                if (UIEditableSDCNObject.Selected == obj)
+                    obj.Deselect();
+                Destroy(obj.gameObject);
+            }
+
+            // The tooltip might stick
+            UITooltip.Instance.Hide();
+        }
+
         // If the render overlay is active, and the SDCNManager is not
         // rendering, we want to disable the render overlay panel. We do
         // not want to re-enable the free camera, as a texture viewer is
