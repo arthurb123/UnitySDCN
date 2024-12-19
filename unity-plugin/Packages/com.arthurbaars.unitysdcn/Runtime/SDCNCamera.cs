@@ -264,7 +264,7 @@ namespace UnitySDCN
                 normalMaterial = new Material(normalShader);
 
                 // Set up a black skybox
-                skyboxMaterial = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
+                skyboxMaterial = new Material(Shader.Find("SDCN/Unlit"));
                 skyboxMaterial.color = Color.black;
                 RenderSettings.skybox = skyboxMaterial;
 
@@ -432,11 +432,11 @@ namespace UnitySDCN
                     originalMaterials[renderer] = renderer.sharedMaterials;
                 }
 
-                Shader unlitShader = Shader.Find("Universal Render Pipeline/Unlit");
+                Shader unlitShader = Shader.Find("SDCN/Unlit");
                 if (unlitShader == null) {
                     SDCNLogger.Error(
                         typeof(SDCNManager), 
-                        "Shader 'Universal Render Pipeline/Unlit' not found!"
+                        "Shader 'SDCN/Unlit' not found!"
                     );
                     return null;
                 }

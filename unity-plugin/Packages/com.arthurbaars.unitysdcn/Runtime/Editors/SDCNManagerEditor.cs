@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿#if UNITY_EDITOR
+using UnityEngine;
 using UnityEditor;
 
 namespace UnitySDCN {
@@ -18,3 +19,4 @@ namespace UnitySDCN {
         }
     }
 }
+#endif
