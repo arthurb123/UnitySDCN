@@ -46,16 +46,8 @@ public class UIInteractiveManager : MonoBehaviour
         SpawnObject(PrimitiveType.Sphere);
     }
 
-    public void SpawnCapsule() {
-        SpawnObject(PrimitiveType.Capsule);
-    }
-
     public void SpawnCylinder() {
         SpawnObject(PrimitiveType.Cylinder);
-    }
-
-    public void SpawnPlane() {
-        SpawnObject(PrimitiveType.Plane);
     }
 
     public void SpawnQuad() {
@@ -263,19 +255,19 @@ public class UIInteractiveManager : MonoBehaviour
         // Check if we are not rendering and not editing the prompt
         // if the user presses the delete button, we want to delete
         // all objects in the scene
-        if (!SDCNManager.Rendering
-        &&  !PromptPanel.activeInHierarchy
-        &&  !SDCNViewer.Active
-        &&  Input.GetKeyDown(KeyCode.Delete)) {
-            foreach (UIEditableSDCNObject obj in FindObjectsOfType<UIEditableSDCNObject>()) {
-                if (UIEditableSDCNObject.Selected == obj)
-                    obj.Deselect();
-                Destroy(obj.gameObject);
-            }
+        // if (!SDCNManager.Rendering
+        // &&  !PromptPanel.activeInHierarchy
+        // &&  !SDCNViewer.Active
+        // &&  Input.GetKeyDown(KeyCode.Delete)) {
+        //     foreach (UIEditableSDCNObject obj in FindObjectsOfType<UIEditableSDCNObject>()) {
+        //         if (UIEditableSDCNObject.Selected == obj)
+        //             obj.Deselect();
+        //         Destroy(obj.gameObject);
+        //     }
 
-            // The tooltip might stick
-            UITooltip.Instance.Hide();
-        }
+        //     // The tooltip might stick
+        //     UITooltip.Instance.Hide();
+        // }
 
         // If the render overlay is active, and the SDCNManager is not
         // rendering, we want to disable the render overlay panel. We do

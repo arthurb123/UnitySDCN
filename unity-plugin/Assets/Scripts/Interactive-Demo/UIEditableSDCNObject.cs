@@ -39,16 +39,15 @@ public class UIEditableSDCNObject : MonoBehaviour
         }
 
         // Check if mouse was pressed down (left click)
-        if (Selected == null && Input.GetMouseButtonDown(0)) {
+        if (Input.GetMouseButtonDown(0)) {
             // Check if mouse is over this object
-            if (_isMouseOver) {
-                // Deselect previous object
-                if (Selected != null)
-                    Selected.Deselect();
-
-                // Select this object
+            if (Selected == null && _isMouseOver)
                 Select();
-            }
+
+            // If the mouse is not over this object,
+            // but it is selected we want to deselect
+            else if (Selected == this && !_isMouseOver)
+                Deselect();
         }
 
         // Check if this object is selected
