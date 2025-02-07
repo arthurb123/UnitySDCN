@@ -27,6 +27,8 @@ public class UIInteractiveManager : MonoBehaviour
     [Space]
     public GameObject SpawnerPanel;
     [Space]
+    public GameObject GuidePanel;
+    [Space]
     public GameObject SelectedPanel;
     public Image SelectedPromptHighlightedImage;
     public Image SelectedPositionHighlightedImage;
@@ -150,6 +152,9 @@ public class UIInteractiveManager : MonoBehaviour
 
         // Show the spawner panel
         SpawnerPanel.SetActive(true);
+
+        // Show the guide panel
+        GuidePanel.SetActive(true);
     }
 
     public void UpdatePromptStrength() {
@@ -289,6 +294,9 @@ public class UIInteractiveManager : MonoBehaviour
 
             // Hide the spawner panel
             SpawnerPanel.SetActive(false);
+
+            // Hide the guide panel
+            GuidePanel.SetActive(false);
 
             // Set the viewer opacity
             SDCNViewer.Instance.Opacity = ViewerTransparencySlider.value;

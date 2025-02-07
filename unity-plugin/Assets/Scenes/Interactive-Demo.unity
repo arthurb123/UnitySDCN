@@ -2428,7 +2428,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 32, y: 32}
-  m_SizeDelta: {x: 240, y: 246}
+  m_SizeDelta: {x: 240, y: 168}
   m_Pivot: {x: 0, y: 0}
 --- !u!114 &479635675
 MonoBehaviour:
@@ -6111,6 +6111,7 @@ MonoBehaviour:
   ViewerTransparencySlider: {fileID: 396810017}
   RenderPanel: {fileID: 1401591772}
   SpawnerPanel: {fileID: 479635673}
+  GuidePanel: {fileID: 972546541}
   SelectedPanel: {fileID: 1189827564}
   SelectedPromptHighlightedImage: {fileID: 1494719417}
   SelectedPositionHighlightedImage: {fileID: 2142334500}
