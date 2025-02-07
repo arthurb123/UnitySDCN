@@ -35,11 +35,11 @@ namespace UnitySDCN
         }
 
         /**
-            * Capture various image data from the camera, based
-            * on the enabled camera modes
-            *
-            * @return A SDCNCameraCapture object containing the captured images
-            */
+          * Capture various image data from the camera, based
+          * on the enabled camera modes
+          *
+          * @return A SDCNCameraCapture object containing the captured images
+          */
         public SDCNCameraCapture? Capture() {
             // Get the capture resolution
             Vector2Int captureResolution = GetCaptureResolution();
@@ -560,6 +560,18 @@ namespace UnitySDCN
             int width = Mathf.ClosestPowerOfTwo(originalWidth);
             // Calculate height based on the original aspect ratio
             int height = Mathf.RoundToInt(width * ((float)originalHeight / originalWidth));
+
+            // Ensure the aspect ratio is 16:9, 4:3, or 1:1
+            float aspectRatio = (float)width / height;
+            if (Mathf.Approximately(aspectRatio, 16f / 9f))
+                height = Mathf.RoundToInt(width / (16f / 9f));
+            else if (Mathf.Approximately(aspectRatio, 4f / 3f))
+                height = Mathf.RoundToInt(width / (4f / 3f));
+            else
+            {
+                // Default to 1:1 aspect ratio
+                height = width;
+            }
 
             return new Vector2Int(width, height);
         }
