@@ -15,7 +15,7 @@ public class UIInteractiveManager : MonoBehaviour
     public SDCNManager SDCNManager;
     public FreeCamera FreeCameraController;
     public RuntimeTransformHandle GizmoController;
-    public Transform ObjectContainer;
+    public PrimitiveSpawner PrimitiveSpawner;
 
     [Header("Components")]
     public GameObject RenderOverlayPanel;
@@ -41,19 +41,19 @@ public class UIInteractiveManager : MonoBehaviour
     public TMP_InputField PromptStrengthInput;
 
     public void SpawnCube() {
-        SpawnObject(PrimitiveType.Cube);
+        PrimitiveSpawner.SpawnObject(PrimitiveType.Cube);
     }
 
     public void SpawnSphere() {
-        SpawnObject(PrimitiveType.Sphere);
+        PrimitiveSpawner.SpawnObject(PrimitiveType.Sphere);
     }
 
     public void SpawnCylinder() {
-        SpawnObject(PrimitiveType.Cylinder);
+        PrimitiveSpawner.SpawnObject(PrimitiveType.Cylinder);
     }
 
     public void SpawnQuad() {
-        SpawnObject(PrimitiveType.Quad);
+        PrimitiveSpawner.SpawnObject(PrimitiveType.Quad);
     }
 
     public void StartEditingPrompt() {
@@ -169,10 +169,21 @@ public class UIInteractiveManager : MonoBehaviour
     }
 
     private void Start() {
+        // Check instance, we only want one instance of this class
         if (Instance == null)
             Instance = this;
-        else
+        else {
             Destroy(gameObject);
+            return;
+        }
+
+        // Because we can setup rough maps outside of the interactive
+        // demo, we want to update all materials of existing objects
+        // once the interactive manager loads
+        foreach (UIEditableSDCNObject obj in FindObjectsOfType<UIEditableSDCNObject>()) {
+            MeshRenderer renderer = obj.GetComponent<MeshRenderer>();
+            PrimitiveSpawner.AssignColoredMaterial(renderer);
+        }
     }
 
     private void Update() {
@@ -304,31 +315,5 @@ public class UIInteractiveManager : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.Escape))
                 HideViewer();
         }
-    }
-
-    private void SpawnObject(PrimitiveType primitiveType) {
-        // Check if the SDCNViewer is active, or we
-        // are rendering, we should not be able to
-        // interact with the scene
-        if (SDCNViewer.Active
-        ||  SDCNManager.Rendering)
-            return;
-
-        // Spawn a new object
-        GameObject obj = GameObject.CreatePrimitive(primitiveType);
-        obj.transform.position = FreeCameraController.transform.position + FreeCameraController.transform.forward * 5f;
-        obj.transform.rotation = Quaternion.identity;
-        obj.transform.localScale = Vector3.one;
-        obj.transform.SetParent(ObjectContainer);
-
-        // Add the UIEditableSDCNObject component
-        UIEditableSDCNObject editableObj = obj.AddComponent<UIEditableSDCNObject>();
-
-        // Wait for one frame, then select the object
-        IEnumerator selectObject() {
-            yield return null;
-            editableObj.Select();
-        }
-        StartCoroutine(selectObject());
     }
 }
