@@ -11,20 +11,21 @@ namespace UnitySDCN
     [RequireComponent (typeof(Camera))]
     public class SDCNCamera : MonoBehaviour
     {
-        public string BackgroundDescription => _backgroundDescription;
-        public string NegativeDescription => _negativeDescription;
         public SDCNCameraMode Mode => _mode;
 
         [Header("Settings")]
+        [Tooltip("The camera modes to enable for capturing images.")]
         [SerializeField] private SDCNCameraMode _mode = 
             SDCNCameraMode.Segmented 
         |   SDCNCameraMode.Depth 
         |   SDCNCameraMode.Normal;
+        [Tooltip("The scale factor to apply to the captured image resolution.")]
         [SerializeField] [Range(0.1f, 4f)] private float captureScale = 1f;
-        [Tooltip("Applies to all objects in the scene which do not have a SDCNObject component.")]
-        [SerializeField] [TextArea(3, 10)] private string _backgroundDescription = string.Empty;
+        [Tooltip("Applies to all objects in the scene which do not feature a SDCNObject component.")]
+        [TextArea(3, 10)] public string BackgroundDescription = string.Empty;
+        
         [Tooltip("Applies to all objects in the scene, including the background.")]
-        [SerializeField] [TextArea(3, 10)] private string _negativeDescription = string.Empty;
+        [SerializeField] [TextArea(3, 10)] public string NegativeDescription = string.Empty;
 
         private Camera? _camera;
         

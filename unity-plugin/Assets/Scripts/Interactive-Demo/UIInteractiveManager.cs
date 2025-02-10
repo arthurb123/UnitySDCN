@@ -13,6 +13,8 @@ public class UIInteractiveManager : MonoBehaviour
     
     [Header("Scene")]
     public SDCNManager SDCNManager;
+    public SDCNCamera SDCNCamera;
+    [Space]
     public FreeCamera FreeCameraController;
     public RuntimeTransformHandle GizmoController;
     public PrimitiveSpawner PrimitiveSpawner;
@@ -40,6 +42,8 @@ public class UIInteractiveManager : MonoBehaviour
     public Slider PromptStrengthSlider;
     public TMP_InputField PromptStrengthInput;
 
+    private PromptEditingMode _mode;
+
     public void SpawnCube() {
         PrimitiveSpawner.SpawnObject(PrimitiveType.Cube);
     }
@@ -56,25 +60,71 @@ public class UIInteractiveManager : MonoBehaviour
         PrimitiveSpawner.SpawnObject(PrimitiveType.Quad);
     }
 
-    public void StartEditingPrompt() {
-        if (UIEditableSDCNObject.Selected != null) {
-            // Set editing of prompt for the selected object
-            UIEditableSDCNObject.Selected.EditingPrompt = true;
+    public void StartEditingObjectPrompt() {
+        StartEditingPrompt(PromptEditingMode.Object);
+    }
 
-            // Make sure the prompt text field is set to the object's description
-            PromptTextField.text = UIEditableSDCNObject.Selected.SDCNObject.Description;
+    public void StartEditingGlobalPrompt() {
+        StartEditingPrompt(PromptEditingMode.Global);
+    }
+
+    private void StartEditingPrompt(PromptEditingMode mode) {
+        // Set mode
+        _mode = mode;
+
+        // Set any editing prompt for editable SDCN objects
+        UIEditableSDCNObject.AnyEditingPrompt = true;
+
+        // Handle the prompt editing mode
+        switch (mode)
+        {
+            case PromptEditingMode.Global:
+                // Make sure the prompt text field is set to the global description
+                PromptTextField.text = SDCNCamera.BackgroundDescription;
+            break;
+            case PromptEditingMode.Object:
+                if (UIEditableSDCNObject.Selected != null) {
+                    // Start editing prompt for the selected object
+                    UIEditableSDCNObject.Selected.EditingPrompt = true;
+
+                    // Make sure the prompt text field is set to the object's description
+                    PromptTextField.text = UIEditableSDCNObject.Selected.SDCNObject.Description;
+                }
+                else
+                    Debug.LogError("Attempted to edit object prompt without a selected object!");
+            break;
         }
+
+        // Show the prompt panel
+        PromptPanel.SetActive(true);
     }
 
     public void StopEditingPrompt() {
-        // Stop editing prompt for selected object
-        if (UIEditableSDCNObject.Selected != null) {
-            // Set the object's description to the prompt text field
-            UIEditableSDCNObject.Selected.SDCNObject.Description = PromptTextField.text;
+        // Set any editing prompt for editable SDCN objects to false
+        UIEditableSDCNObject.AnyEditingPrompt = false;
 
-            // Stop editing prompt
-            UIEditableSDCNObject.Selected.EditingPrompt = false;
+        // Handle the prompt editing mode
+        switch (_mode)
+        {
+            case PromptEditingMode.Global:
+                // Set the global description to the prompt text field
+                SDCNCamera.BackgroundDescription = PromptTextField.text;
+            break;
+            case PromptEditingMode.Object:
+                if (UIEditableSDCNObject.Selected != null) {
+                    // Stop editing prompt for the selected object
+                    UIEditableSDCNObject.Selected.EditingPrompt = false;
+
+                    // Make sure the prompt text field is set to the object's description
+                    UIEditableSDCNObject.Selected.SDCNObject.Description = PromptTextField.text;
+                }
+                else
+                    Debug.LogError("Attempted to edit object prompt without a selected object!");
+            break;
         }
+
+        // Hide the prompt panel
+        PromptPanel.SetActive(false);
     }
 
     public void ResetPromptStrength() {
@@ -203,32 +253,31 @@ public class UIInteractiveManager : MonoBehaviour
             // Check if editing prompt
             if (UIEditableSDCNObject.Selected != null
             &&  UIEditableSDCNObject.Selected.EditingPrompt) {
-                SelectedPromptHighlightedImage.enabled = true;
-
                 // If the prompt panel is not yet visible,
                 // we want to set the text field to the object's description
-                if (!PromptPanel.activeInHierarchy)
-                    PromptTextField.text = UIEditableSDCNObject.Selected.SDCNObject.Description;
+                if (!PromptPanel.activeInHierarchy) {
+                    StartEditingObjectPrompt();
 
-                // Show the prompt panel
-                PromptPanel.SetActive(true);
+                    // Highlight the selected prompt
+                    SelectedPromptHighlightedImage.enabled = true;
 
-                // Disable the free camera controller
-                FreeCameraController.enabled = false;
+                    // Disable the free camera controller
+                    FreeCameraController.enabled = false;
 
-                // Setup the slider
-                PromptStrengthSlider.maxValue = 10f;
-                PromptStrengthSlider.minValue = 0f;
-                PromptStrengthSlider.value = UIEditableSDCNObject.Selected.SDCNObject.Strength;
-                void setStrength(float value) {
-                    UIEditableSDCNObject.Selected.SDCNObject.Strength = value;
-                    if (!PromptStrengthInput.isFocused)
-                        PromptStrengthInput.text = $"{value.ToString("0.00")}";
+                    // Setup the slider
+                    PromptStrengthSlider.maxValue = 10f;
+                    PromptStrengthSlider.minValue = 0f;
+                    PromptStrengthSlider.value = UIEditableSDCNObject.Selected.SDCNObject.Strength;
+                    void setStrength(float value) {
+                        UIEditableSDCNObject.Selected.SDCNObject.Strength = value;
+                        if (!PromptStrengthInput.isFocused)
+                            PromptStrengthInput.text = $"{value.ToString("0.00")}";
+                    }
+
+                    PromptStrengthSlider.onValueChanged.RemoveAllListeners();
+                    PromptStrengthSlider.onValueChanged.AddListener(setStrength);
+                    setStrength(UIEditableSDCNObject.Selected.SDCNObject.Strength);
                 }
-
-                PromptStrengthSlider.onValueChanged.RemoveAllListeners();
-                PromptStrengthSlider.onValueChanged.AddListener(setStrength);
-                setStrength(UIEditableSDCNObject.Selected.SDCNObject.Strength);
             }
 
             // Otherwise, check the gizmo controller mode
@@ -268,23 +317,6 @@ public class UIInteractiveManager : MonoBehaviour
         && !SDCNViewer.Active)
             RenderImage();
 
-        // Check if we are not rendering and not editing the prompt
-        // if the user presses the delete button, we want to delete
-        // all objects in the scene
-        // if (!SDCNManager.Rendering
-        // &&  !PromptPanel.activeInHierarchy
-        // &&  !SDCNViewer.Active
-        // &&  Input.GetKeyDown(KeyCode.Delete)) {
-        //     foreach (UIEditableSDCNObject obj in FindObjectsOfType<UIEditableSDCNObject>()) {
-        //         if (UIEditableSDCNObject.Selected == obj)
-        //             obj.Deselect();
-        //         Destroy(obj.gameObject);
-        //     }
-
-        //     // The tooltip might stick
-        //     UITooltip.Instance.Hide();
-        // }
-
         // If the render overlay is active, and the SDCNManager is not
         // rendering, we want to disable the render overlay panel. We do
         // not want to re-enable the free camera, as a texture viewer is
@@ -316,4 +348,9 @@ public class UIInteractiveManager : MonoBehaviour
                 HideViewer();
         }
     }
+
+    private enum PromptEditingMode {
+        Global,
+        Object
+    };
 }

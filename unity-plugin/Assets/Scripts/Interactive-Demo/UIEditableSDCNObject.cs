@@ -2,15 +2,19 @@ using System;
 using UnityEngine;
 using UnitySDCN;
 using RuntimeHandle;
+using System.Collections.Generic;
+using UnityEngine.EventSystems;
 
 [RequireComponent(typeof(SDCNObject))]
 public class UIEditableSDCNObject : MonoBehaviour
 {
     public static UIEditableSDCNObject Selected { get; private set; } = null;
+    public static bool AnyEditingPrompt { get; set; } = false;
     
     public bool EditingPrompt { get; set; }
     public SDCNObject SDCNObject { get; private set; }
 
+    private LayerMask _uiLayer;
     private bool _isMouseOver;
     private RuntimeTransformHandle _gizmoController;
     
@@ -25,31 +29,50 @@ public class UIEditableSDCNObject : MonoBehaviour
         _gizmoController = FindObjectOfType<RuntimeTransformHandle>(true);
         if (_gizmoController == null)
             throw new Exception("Could not find RuntimeTransformHandle in scene!");
+
+        // Set UI layer
+        _uiLayer = LayerMask.NameToLayer("UI");
     }
 
     void Update() {
         // If the SDCNViewer is active, we
         // are rendering, or we are editing
-        // the prompt - we should not be able to
+        // ANY prompt - we should not be able to
         // interact with the scene
         if (SDCNViewer.Active
         ||  SDCNManager.Instance.Rendering
-        ||  EditingPrompt) {
-            if (Selected == this)
+        ||  AnyEditingPrompt) {
+            if (!EditingPrompt && Selected == this)
                 Deselect();
             return;
         }
 
+        // Get mouse over UI state
+        bool isMouseOverUI = IsPointerOverUIElement(GetEventSystemRaycastResults());
+        if (isMouseOverUI) {
+            // Reset outline and tooltip if mouse
+            // is currently over the game object
+            if (_isMouseOver) {
+                _isMouseOver = false;
+                UITooltip.Instance.Hide();
+            }
+        }
+
         // Check if mouse was pressed down (left click)
         if (Input.GetMouseButtonDown(0)) {
-            // Check if mouse is over this object
-            if (Selected == null && _isMouseOver)
-                Select();
+            // Check if the mouse is over UI, in this case
+            // we do not want to interact with the scene.
+            // We differentiate UI using the tag "UI"
+            if (!isMouseOverUI) {
+                // Check if mouse is over this object
+                if (Selected == null && _isMouseOver)
+                    Select();
 
-            // If the mouse is not over this object,
-            // but it is selected we want to deselect
-            else if (Selected == this && !_isMouseOver)
-                Deselect();
+                // If the mouse is not over this object,
+                // but it is selected we want to deselect
+                else if (Selected == this && !_isMouseOver)
+                    Deselect();
+            }
         }
 
         // Check if this object is selected
@@ -134,7 +157,7 @@ public class UIEditableSDCNObject : MonoBehaviour
             Selected = null;
     }
 
-    void OnMouseOver() {
+    private void OnMouseOver() {
         // Set flag
         _isMouseOver = true;
 
@@ -153,7 +176,7 @@ public class UIEditableSDCNObject : MonoBehaviour
         }
     }
 
-    void OnMouseExit() {
+    private void OnMouseExit() {
         // Reset flag
         _isMouseOver = false;
 
@@ -162,5 +185,25 @@ public class UIEditableSDCNObject : MonoBehaviour
         ||  SDCNManager.Instance.Rendering
         ||  SDCNViewer.Active)
             UITooltip.Instance.Hide();
+    }
+
+    private bool IsPointerOverUIElement(List<RaycastResult> eventSystemRaysastResults)
+    {
+        for (int index = 0; index < eventSystemRaysastResults.Count; index++)
+        {
+            RaycastResult curRaysastResult = eventSystemRaysastResults[index];
+            if (curRaysastResult.gameObject.layer == _uiLayer)
+                return true;
+        }
+        return false;
+    }
+
+    private List<RaycastResult> GetEventSystemRaycastResults()
+    {
+        PointerEventData eventData = new PointerEventData(EventSystem.current);
+        eventData.position = Input.mousePosition;
+        List<RaycastResult> raysastResults = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(eventData, raysastResults);
+        return raysastResults;
     }
 }
