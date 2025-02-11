@@ -1,6 +1,7 @@
 # UnitySDCN Pipeline
-Work-in-progress pipeline to generate high-quality visuals for barebones 3D environments 
-in Unity URP through the usage of Stable Diffusion & ControlNet.
+Level visualization pipeline to generate high-quality visuals for barebones 3D environments 
+in Unity URP through the usage of Stable Diffusion & ControlNet, for my MSc. Game & Media Technology
+master thesis at Utrecht University.
 
 ## Preview
 Unity URP demo scene       |  Post visualization
@@ -24,6 +25,3 @@ Unity URP demo scene       |  Post visualization
 <ins>ControlNet SD1.5</ins>
 * Depth: https://huggingface.co/lllyasviel/sd-controlnet-depth
 * Normal: https://huggingface.co/lllyasviel/sd-controlnet-normal
-
-## Roadmap
-* If a ComfyUI plugin ever arrives, maybe implement Flux.1 support using: https://github.com/instantX-research/Regional-Prompting-FLUX
