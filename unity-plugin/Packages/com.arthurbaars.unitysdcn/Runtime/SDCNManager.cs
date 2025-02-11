@@ -130,6 +130,9 @@ namespace UnitySDCN {
                 seed: _randomSeed ? null : _seed
             );
 
+            // Reset rendering
+            Rendering = false;
+
             // Check if texture is valid
             if (texture == null) {
                 SDCNLogger.Error(
@@ -138,9 +141,6 @@ namespace UnitySDCN {
                 );
                 return null;
             }
-
-            // Reset rendering
-            Rendering = false;
 
             // Return texture
             return texture;
