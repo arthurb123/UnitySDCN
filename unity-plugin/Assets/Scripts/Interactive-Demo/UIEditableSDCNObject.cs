@@ -34,7 +34,9 @@ public class UIEditableSDCNObject : MonoBehaviour
         _uiLayer = LayerMask.NameToLayer("UI");
     }
 
-    void Update() {
+    // We run this in late update so that the gizmo
+    // controller has priority over handling input events
+    void LateUpdate() {
         // If the SDCNViewer is active, we
         // are rendering, or we are editing
         // ANY prompt - we should not be able to
@@ -49,6 +51,7 @@ public class UIEditableSDCNObject : MonoBehaviour
 
         // Get mouse over UI state
         bool isMouseOverUI = IsPointerOverUIElement(GetEventSystemRaycastResults());
+        bool isMouseOverGizmo = _gizmoController.DraggingHandle;
         if (isMouseOverUI) {
             // Reset outline and tooltip if mouse
             // is currently over the game object
@@ -63,7 +66,7 @@ public class UIEditableSDCNObject : MonoBehaviour
             // Check if the mouse is over UI, in this case
             // we do not want to interact with the scene.
             // We differentiate UI using the tag "UI"
-            if (!isMouseOverUI) {
+            if (!isMouseOverUI && !isMouseOverGizmo) {
                 // Check if mouse is over this object
                 if (Selected == null && _isMouseOver)
                     Select();

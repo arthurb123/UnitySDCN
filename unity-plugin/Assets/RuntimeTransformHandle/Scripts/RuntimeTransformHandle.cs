@@ -11,6 +11,8 @@ namespace RuntimeHandle
      */
     public class RuntimeTransformHandle : MonoBehaviour
     {
+        public bool DraggingHandle { get { return _draggingHandle != null; } }
+
         public HandleAxes axes = HandleAxes.XYZ;
         public HandleSpace space = HandleSpace.LOCAL;
         public HandleType type = HandleType.POSITION;
