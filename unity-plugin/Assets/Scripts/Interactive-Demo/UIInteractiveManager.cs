@@ -43,6 +43,8 @@ public class UIInteractiveManager : MonoBehaviour
     public TMP_InputField PromptStrengthInput;
 
     private PromptEditingMode _mode;
+    private Vector3 _originalCameraPosition;
+    private Quaternion _originalCameraRotation;
 
     public void SpawnCube() {
         PrimitiveSpawner.SpawnObject(PrimitiveType.Cube);
@@ -234,6 +236,10 @@ public class UIInteractiveManager : MonoBehaviour
             MeshRenderer renderer = obj.GetComponent<MeshRenderer>();
             PrimitiveSpawner.AssignColoredMaterial(renderer);
         }
+
+        // Register original camera position and rotation
+        _originalCameraPosition = SDCNCamera.transform.position;
+        _originalCameraRotation = SDCNCamera.transform.rotation;
     }
 
     private void Update() {
@@ -306,7 +312,7 @@ public class UIInteractiveManager : MonoBehaviour
             SelectedPanel.SetActive(false);
 
         // Check if we the prompt panel is active, we
-        // do not want to render the scene while editing
+        // do not want to update the scene while editing
         if (PromptPanel.activeInHierarchy)
             return;
 
@@ -314,8 +320,21 @@ public class UIInteractiveManager : MonoBehaviour
         // not already rendering we want to start rendering
         if (Input.GetKeyDown(KeyCode.Space) 
         && !RenderOverlayPanel.activeInHierarchy
-        && !SDCNViewer.Active)
+        && !SDCNViewer.Active) {
             RenderImage();
+            return;
+        }
+
+        // Check if the user pressed the tab button, if we
+        // are not rendering and not viewing we want to reset
+        // the camera position to the original position
+        if (Input.GetKeyDown(KeyCode.Tab)
+        && !RenderOverlayPanel.activeInHierarchy
+        && !SDCNViewer.Active) {
+            SDCNCamera.transform.position = _originalCameraPosition;
+            SDCNCamera.transform.rotation = _originalCameraRotation;
+            return;
+        }
 
         // If the render overlay is active, and the SDCNManager is not
         // rendering, we want to disable the render overlay panel. We do

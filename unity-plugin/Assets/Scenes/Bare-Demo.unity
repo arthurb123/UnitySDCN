@@ -407,7 +407,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _mode: -1
-  captureScale: 0.5
+  captureScale: 0.675
   BackgroundDescription: 
   NegativeDescription: 
 --- !u!1 &399329186
