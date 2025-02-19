@@ -408,8 +408,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _mode: -1
   captureScale: 0.5
-  _backgroundDescription: 
-  _negativeDescription: cartoon, stylistic, blurry, bad quality
+  BackgroundDescription: 
+  NegativeDescription: 
 --- !u!1 &399329186
 GameObject:
   m_ObjectHideFlags: 0
@@ -1599,7 +1599,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _camera: {fileID: 330585548}
-  _webServerAddress: http://145.90.83.251:9295
+  _webServerAddress: http://localhost:9295
   _randomSeed: 1
   _seed: 0
   _logVerbosity: 1

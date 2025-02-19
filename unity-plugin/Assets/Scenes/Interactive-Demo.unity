@@ -3247,7 +3247,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2ebbad60efc127741baa621dcf29d43d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Description: a medieval market stall selling flowers
+  Description: a market stall
   Strength: 1
 --- !u!65 &607339957
 BoxCollider:
@@ -4438,7 +4438,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2ebbad60efc127741baa621dcf29d43d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Description: a medieval tavern
+  Description: a tavern
   Strength: 1
 --- !u!65 &734170357
 BoxCollider:
@@ -5609,7 +5609,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2ebbad60efc127741baa621dcf29d43d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Description: dirt path
+  Description: a path
   Strength: 1
 --- !u!65 &1046229510
 BoxCollider:
@@ -5727,7 +5727,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _camera: {fileID: 330585548}
-  _webServerAddress: http://145.90.83.251:9295
+  _webServerAddress: http://localhost:9295
   _randomSeed: 0
   _seed: 0
   _logVerbosity: 1
@@ -5925,7 +5925,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2ebbad60efc127741baa621dcf29d43d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Description: a cobblestone gate
+  Description: a gate
   Strength: 1
 --- !u!65 &1097722566
 BoxCollider:
@@ -8023,7 +8023,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1578136774
 RectTransform:
   m_ObjectHideFlags: 0
@@ -8145,7 +8145,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2ebbad60efc127741baa621dcf29d43d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Description: a medieval market stall selling baked goods such as bread
+  Description: a market stall
   Strength: 1
 --- !u!65 &1578531603
 BoxCollider:
