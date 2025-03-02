@@ -174,7 +174,8 @@ public class UIEditableSDCNObject : MonoBehaviour
             string description = SDCNObject.Description;
             if (description == null || description == string.Empty)
                 description = "(No description yet set)";
-            string fullDescription = $"{description}\n\nStrength: {SDCNObject.Strength.ToString("0.00")}";
+            // string fullDescription = $"{description}\n\nStrength: {SDCNObject.Strength.ToString("0.00")}";
+            string fullDescription = $"{description}";
             UITooltip.Instance.Show(gameObject, fullDescription);
         }
     }

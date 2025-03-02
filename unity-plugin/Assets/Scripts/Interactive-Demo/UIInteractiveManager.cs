@@ -267,9 +267,6 @@ public class UIInteractiveManager : MonoBehaviour
                     // Highlight the selected prompt
                     SelectedPromptHighlightedImage.enabled = true;
 
-                    // Disable the free camera controller
-                    FreeCameraController.enabled = false;
-
                     // Setup the slider
                     PromptStrengthSlider.maxValue = 10f;
                     PromptStrengthSlider.minValue = 0f;
@@ -291,9 +288,6 @@ public class UIInteractiveManager : MonoBehaviour
                 // Hide the prompt panel
                 PromptPanel.SetActive(false);
 
-                // Enable the free camera controller
-                FreeCameraController.enabled = true;
-
                 // Highlight the selected mode
                 switch (GizmoController.type) {
                     case HandleType.POSITION:
@@ -312,9 +306,15 @@ public class UIInteractiveManager : MonoBehaviour
             SelectedPanel.SetActive(false);
 
         // Check if we the prompt panel is active, we
-        // do not want to update the scene while editing
-        if (PromptPanel.activeInHierarchy)
+        // do not want to update the scene while editing -
+        // we also do NOT want to allow camera movement
+        // while editing the prompt
+        if (PromptPanel.activeInHierarchy) {
+            FreeCameraController.enabled = false;
             return;
+        }
+        else
+            FreeCameraController.enabled = true;
 
         // Check if user pressed the space button, if we are
         // not already rendering we want to start rendering
