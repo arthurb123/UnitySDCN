@@ -1,7 +1,7 @@
 # UnitySDCN Pipeline
 Level visualization pipeline to generate high-quality visuals for barebones 3D environments 
-in Unity URP through the usage of Stable Diffusion & ControlNet, for my MSc. Game & Media Technology
-master thesis at Utrecht University.
+in Unity URP through the usage of [Stable Diffusion](https://arxiv.org/abs/2112.10752) & [ControlNet](https://arxiv.org/abs/2302.05543), for my [MSc. Game & Media Technology](https://www.uu.nl/en/masters/game-and-media-technology)
+thesis at [Utrecht University](https://www.uu.nl/en).
 
 ## Preview
 Unity URP demo scene       |  Post visualization
