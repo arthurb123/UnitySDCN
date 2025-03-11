@@ -130,29 +130,32 @@ namespace UnitySDCN
             try
             {
                 // Set up camera for depth rendering
+                _camera.depthTextureMode = DepthTextureMode.Depth;
                 _camera.targetTexture = depthRT;
                 _camera.clearFlags = CameraClearFlags.SolidColor;
                 _camera.backgroundColor = Color.white;
 
-                // Render the camera
-                _camera.Render();
-
-                // Blit depth texture to color texture
-                Graphics.Blit(depthRT, colorRT, depthMaterial);
-
-                // Read pixels from the color texture
-                Texture2D depthTexture = new(captureResolution.x, captureResolution.y, TextureFormat.RGB24, false);
+                // Ensure the camera generates a depth texture.
+                _camera.depthTextureMode = DepthTextureMode.Depth;
                 RenderTexture.active = colorRT;
+                Graphics.Blit(null, colorRT, depthMaterial);
+
+                // Read the pixels from colorRT
+                Texture2D depthTexture = new Texture2D(captureResolution.x, captureResolution.y, TextureFormat.RGB24, false);
                 depthTexture.ReadPixels(new Rect(0, 0, captureResolution.x, captureResolution.y), 0, 0);
                 depthTexture.Apply();
 
-                // Normalize the depth texture
+                // Normalize the depth values
                 Color[] pixels = depthTexture.GetPixels();
-                float maxDepth = 0.0f;
-                foreach (Color pixel in pixels)
-                    maxDepth = Mathf.Max(maxDepth, pixel.r);
+                float minDepth = 0f;
                 for (int i = 0; i < pixels.Length; i++)
-                    pixels[i] = new Color(pixels[i].r / maxDepth, pixels[i].r / maxDepth, pixels[i].r / maxDepth);
+                    minDepth = Mathf.Max(minDepth, pixels[i].r);
+                for (int i = 0; i < pixels.Length; i++)
+                {
+                    float depth = pixels[i].r;
+                    float normalizedDepth = depth / minDepth;
+                    pixels[i] = new Color(normalizedDepth, normalizedDepth, normalizedDepth);
+                }
                 depthTexture.SetPixels(pixels);
                 depthTexture.Apply();
 
