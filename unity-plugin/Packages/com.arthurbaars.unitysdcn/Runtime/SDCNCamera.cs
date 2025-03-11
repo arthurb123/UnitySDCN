@@ -124,6 +124,18 @@ namespace UnitySDCN
             }
             Material depthMaterial = new(depthShader);
 
+            // Based on the graphics backend, we need to flip the depth values
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
+            {
+                depthMaterial.SetFloat("_Invert", 1.0f);
+            }
+            else
+            {
+                depthMaterial.SetFloat("_Invert", 0.0f);
+            }
+
             RenderTexture originalRT = _camera.targetTexture;
             CameraClearFlags originalClearFlags = _camera.clearFlags;
 
@@ -133,7 +145,7 @@ namespace UnitySDCN
                 _camera.depthTextureMode = DepthTextureMode.Depth;
                 _camera.targetTexture = depthRT;
                 _camera.clearFlags = CameraClearFlags.SolidColor;
-                _camera.backgroundColor = Color.white;
+                _camera.backgroundColor = Color.black;
 
                 // Ensure the camera generates a depth texture.
                 _camera.depthTextureMode = DepthTextureMode.Depth;

@@ -3,6 +3,7 @@ Shader "SDCN/Depth"
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
+        _InvertY ("Invert", Float) = 0.0
     }
     SubShader
     {
@@ -18,6 +19,7 @@ Shader "SDCN/Depth"
 
             sampler2D_float _CameraDepthTexture;
             float4 _CameraDepthTexture_TexelSize;
+            float _Invert;
 
             struct appdata
             {
@@ -41,8 +43,10 @@ Shader "SDCN/Depth"
 
             float4 frag (v2f i) : SV_Target
             {
-                float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uv);
-                return float4(depth, depth, depth, 1.0);
+                float rawDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uv).x;
+                float linearDepth = rawDepth;
+                if (_Invert > 0.5) linearDepth = 1.0 - linearDepth;
+                return float4(linearDepth, linearDepth, linearDepth, 1.0);
             }
             ENDCG
         }
