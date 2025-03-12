@@ -109,7 +109,8 @@ app.use(bodyParser.json({
     limit: '100mb'
 }));
 
-let currentGenerationId = 0;
+let currentGenerationId: number = 0;
+let awaitingGeneration: boolean = false;
 app.post('/generate', async (req, res) => {
     try {
         // Extract data
@@ -158,6 +159,7 @@ app.post('/generate', async (req, res) => {
 
         // Generate images
         console.log(`Starting image generation..`);
+        awaitingGeneration = true;
         const images = await comfyUIClient.getImages(workflow);
 
         // Save images to file
@@ -183,6 +185,7 @@ app.post('/generate', async (req, res) => {
         await comfyUIClient.disconnect();
 
         // Check if the image was found
+        awaitingGeneration = false;
         if (foundImage)
             console.log(`Image saved to ${imageLocation}!`);
         else {
@@ -197,9 +200,14 @@ app.post('/generate', async (req, res) => {
         // Send back the generation id
         res.status(200).send(generationId.toString());
     } catch (error) {
+        awaitingGeneration = false;
         console.error(`Error generating image: ${error}`);
         res.sendStatus(500);
     }
+});
+
+app.get('/available', (_, res) => {
+    res.status(200).send(awaitingGeneration ? 'false' : 'true');
 });
 
 app.get('/image/:id', (req, res) => {
