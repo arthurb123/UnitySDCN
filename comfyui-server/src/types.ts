@@ -20,7 +20,9 @@ export type ComfyUIConfiguration = {
     cfg: number,
     sampler: string,
     scheduler: string,
-    denoise: number
+    denoise: number,
+
+    outputPrefix: string
 };
 
 export type ControlNetModelType = 'normal' | 'lllite';

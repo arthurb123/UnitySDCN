@@ -295,7 +295,7 @@ export default class ComfyUI {
             },
             "${SAVE_IMAGE_ID}": {
                 "inputs": {
-                    "filename_prefix": "${Utils.formatImageName(generationId)}",
+                    "filename_prefix": "${Utils.formatImageName(comfyUIConfiguration.outputPrefix, generationId)}",
                     "images": [
                         "${VAE_DECODE_ID}",
                         0

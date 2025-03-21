@@ -94,6 +94,11 @@ if (comfyUIConfiguration.useControlNet) {
         process.exit(1);
     }
 }
+if (comfyUIConfiguration.outputPrefix === undefined
+||  comfyUIConfiguration.outputPrefix === '') {
+    console.error('Please provide an output prefix for the generated images.');
+    process.exit(1);
+}
 
 // Setup server and ComfyUI client
 const app = express();
@@ -105,6 +110,7 @@ if (fs.existsSync('temp'))
     fs.rmSync('temp', { recursive: true });
 fs.mkdirSync('temp');
 
+// We need to increase the body limit as the images can be quite large
 app.use(bodyParser.json({
     limit: '100mb'
 }));
@@ -170,8 +176,8 @@ app.post('/generate', async (req, res) => {
 
         // Find the image where the image name
         // is present in the file name
-        const imageName = Utils.formatImageName(generationId);
-        const imageLocation = Utils.formatImageLocation(generationId);
+        const imageName = Utils.formatImageName(comfyUIConfiguration.outputPrefix, generationId);
+        const imageLocation = Utils.formatImageLocation(comfyUIConfiguration.outputPrefix, generationId);
         let foundImage = false;
         fs.readdirSync(outputDir).forEach(file => {
             if (file.includes(imageName)) {
@@ -180,8 +186,6 @@ app.post('/generate', async (req, res) => {
                 foundImage = true;
             }
         });
-
-        // Disconnect
         await comfyUIClient.disconnect();
 
         // Check if the image was found
@@ -211,19 +215,12 @@ app.get('/available', (_, res) => {
 });
 
 app.get('/image/:id', (req, res) => {
-    // Get the generation ID
     const id = parseInt(req.params.id);
-
-    // Get the image location
-    const imageLocation = Utils.formatImageLocation(id);
-
-    // Check if the image exists
+    const imageLocation = Utils.formatImageLocation(comfyUIConfiguration.outputPrefix, id);
     if (!fs.existsSync(imageLocation)) {
         res.sendStatus(404);
         return;
     }
-
-    // Send
     res.sendFile(imageLocation);
 });
 
